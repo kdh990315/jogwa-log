@@ -1,20 +1,177 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   color-scheme: light;
+
+  --brand: #3182f6;
+  --brand-hover: #1565e0;
+  --brand-strong: #1d4ed8;
+  --brand-fg: #2563eb;
+  --brand-fg-strong: #1d4ed8;
+  --brand-surface: #eff6ff;
+  --brand-border: #bfdbfe;
+
+  --surface-app: #f1f5f9;
+  --surface-panel: #ffffff;
+  --surface-page: #f8fafc;
+  --surface-card: #ffffff;
+  --surface-muted: #f1f5f9;
+
+  --surface: var(--surface-card);
+  --surface-strong: #ffffff;
+
+  --fg: #0f172a;
+  --fg-dim: #475569;
+  --fg-muted: #94a3b8;
+  --fg-faint: #64748b;
+
+  --text: var(--fg);
+  --text-muted: var(--fg-dim);
+  --text-faint: var(--fg-muted);
+
+  --line: #e2e8f0;
+  --line-muted: #f1f5f9;
+  --line-card: #e2e8f0;
+
+  --viz-1: #3182f6;
+  --viz-2: #60a5fa;
+  --viz-3: #93c5fd;
+  --viz-4: #bfdbfe;
+
+  --shadow-soft: 0 18px 44px -28px rgb(15 23 42 / 0.18);
+  --shadow-card: 0 34px 90px -40px rgb(15 23 42 / 0.24);
+
+  --radius-panel: 1.75rem;
+  --radius-card: 2rem;
+
+  --page-max-width: 80rem;
+  --page-padding-inline: clamp(1.25rem, 3vw, 2rem);
+  --page-padding-block: clamp(2rem, 4vw, 3rem);
+  --section-gap: clamp(1rem, 2vw, 1.5rem);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --brand: #3182f6;
+  --brand-hover: #1565e0;
+  --brand-strong: #93c5fd;
+  --brand-fg: #60a5fa;
+  --brand-fg-strong: #93c5fd;
+  --brand-surface: #162340;
+  --brand-border: #1c3a62;
+
+  --surface-app: #020617;
+  --surface-panel: #0f172a;
+  --surface-page: #0b1120;
+  --surface-card: #1e293b;
+  --surface-muted: #1e293b;
+
+  --surface: var(--surface-card);
+  --surface-strong: #1c273b;
+
+  --fg: #f8fafc;
+  --fg-dim: #94a3b8;
+  --fg-muted: #64748b;
+  --fg-faint: #475569;
+
+  --text: var(--fg);
+  --text-muted: var(--fg-dim);
+  --text-faint: var(--fg-muted);
+
+  --line: #1e293b;
+  --line-muted: #1e293b;
+  --line-card: #334155;
+
+  --viz-1: #3182f6;
+  --viz-2: #60a5fa;
+  --viz-3: #93c5fd;
+  --viz-4: #bfdbfe;
+
+  --shadow-soft: 0 18px 44px -28px rgb(2 6 23 / 0.5);
+  --shadow-card: 0 34px 90px -40px rgb(2 6 23 / 0.65);
+}
+
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-fg: var(--brand-fg);
+  --color-brand-fg-strong: var(--brand-fg-strong);
+  --color-brand-surface: var(--brand-surface);
+  --color-brand-border: var(--brand-border);
+
+  --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
+  --color-surface-muted: var(--surface-muted);
+  --color-surface-app: var(--surface-app);
+  --color-surface-panel: var(--surface-panel);
+  --color-surface-page: var(--surface-page);
+  --color-surface-card: var(--surface-card);
+
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-text-faint: var(--text-faint);
+  --color-fg: var(--fg);
+  --color-fg-dim: var(--fg-dim);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-faint: var(--fg-faint);
+
+  --color-line: var(--line);
+  --color-line-muted: var(--line-muted);
+  --color-line-card: var(--line-card);
+
+  --color-viz-1: var(--viz-1);
+  --color-viz-2: var(--viz-2);
+  --color-viz-3: var(--viz-3);
+  --color-viz-4: var(--viz-4);
 }
 
 * {
   box-sizing: border-box;
 }
 
-html,
-body {
-  margin: 0;
+html {
   min-height: 100%;
-  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  font-size: 16px;
+  scroll-behavior: smooth;
 }
 
 body {
+  margin: 0;
   min-height: 100vh;
+  color: var(--text);
+  font-family: "Pretendard", "Noto Sans KR", sans-serif;
+  background:
+    radial-gradient(circle at top left, rgb(49 130 246 / 0.12), transparent 28%),
+    radial-gradient(circle at top right, rgb(125 211 252 / 0.12), transparent 24%),
+    linear-gradient(180deg, #f8fbff 0%, var(--surface-app) 42%, #edf2f7 100%);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.dark body {
+  background:
+    radial-gradient(circle at top left, rgb(49 130 246 / 0.16), transparent 26%),
+    radial-gradient(circle at top right, rgb(14 165 233 / 0.14), transparent 22%),
+    linear-gradient(180deg, #08101f 0%, var(--surface-app) 40%, #040b18 100%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  color: #ffffff;
+  background: rgb(37 99 235 / 0.8);
 }

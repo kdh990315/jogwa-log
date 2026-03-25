@@ -1,9 +1,9 @@
 export default function HomePage() {
   return (
-    <main className="min-h-screen px-5 py-8 sm:px-8 sm:py-10">
-      <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center">
-        <div className="grid w-full gap-5 lg:grid-cols-[1.15fr_0.85fr]">
-          <article className="rounded-[32px] border border-[color:var(--line)] bg-[color:var(--surface)] p-7 shadow-[var(--shadow-card)] backdrop-blur-[18px] sm:p-10">
+    <main className="min-h-screen px-[var(--page-padding-inline)] py-[var(--page-padding-block)]">
+      <section className="mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-[var(--page-max-width)] items-center">
+        <div className="grid w-full gap-[var(--section-gap)] lg:grid-cols-[1.15fr_0.85fr]">
+          <article className="rounded-[var(--radius-card)] border border-[color:var(--line)] bg-[color:var(--surface)] p-7 shadow-[var(--shadow-card)] backdrop-blur-[18px] sm:p-10">
             <p className="mb-4 text-sm font-semibold uppercase tracking-[0.22em] text-[color:var(--brand)]">
               Jogwa-log
             </p>
@@ -30,8 +30,8 @@ export default function HomePage() {
             </div>
           </article>
 
-          <aside className="flex flex-col gap-5">
-            <section className="rounded-[28px] border border-[color:var(--line)] bg-[color:var(--surface-strong)] p-6 shadow-[var(--shadow-soft)]">
+          <aside className="flex flex-col gap-[var(--section-gap)]">
+            <section className="rounded-[var(--radius-panel)] border border-[color:var(--line)] bg-[color:var(--surface-strong)] p-6 shadow-[var(--shadow-soft)]">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[color:var(--brand)]">
                 Design Direction
               </p>
@@ -42,7 +42,7 @@ export default function HomePage() {
               </p>
             </section>
 
-            <section className="rounded-[28px] border border-[color:var(--line)] bg-[color:var(--surface-muted)] p-6 shadow-[var(--shadow-soft)]">
+            <section className="rounded-[var(--radius-panel)] border border-[color:var(--line)] bg-[color:var(--surface-muted)] p-6 shadow-[var(--shadow-soft)]">
               <div className="flex items-center justify-between">
                 <h2 className="text-base font-semibold text-[color:var(--text)]">
                   기본 레이아웃 기준
