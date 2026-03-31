@@ -1,0 +1,30 @@
+{
+  "name": "@jogwa-log/data-access",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    "./api/referenceData/fieldTypes": "./src/api/referenceData/fieldTypes.ts",
+    "./api/referenceData/fish": "./src/api/referenceData/fish.ts",
+    "./supabase/browser": "./src/supabase/browser.ts",
+    "./supabase/client": "./src/supabase/client.ts",
+    "./supabase/config": "./src/supabase/config.ts",
+    "./supabase/databaseTypes": "./src/supabase/databaseTypes.ts",
+    "./supabase/proxy": "./src/supabase/proxy.ts",
+    "./supabase/server": "./src/supabase/server.ts"
+  },
+  "peerDependencies": {
+    "@supabase/ssr": "^0.9.0",
+    "@supabase/supabase-js": "^2.100.0",
+    "next": "^16.2.1"
+  },
+  "peerDependenciesMeta": {
+    "@supabase/ssr": {
+      "optional": true
+    },
+    "next": {
+      "optional": true
+    }
+  }
+}

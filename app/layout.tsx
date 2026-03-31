@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { Metadata } from "next";
-import AuthSessionSync from "../components/auth/auth-session-sync";
+import AuthSessionSync from "../components/auth/authSessionSync";
 import "./globals.css";
 
 export const metadata: Metadata = {

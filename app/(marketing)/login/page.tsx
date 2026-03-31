@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Fish } from "lucide-react";
 import Link from "next/link";
@@ -8,8 +9,8 @@ import {
   AUTH_CALLBACK_ERROR_MESSAGE,
   AUTH_SUCCESS_PATH,
 } from "../../../lib/auth/constants";
-import { createClient } from "../../../utils/supabase/server";
-import LoginForm from "./login-form";
+import { createClient } from "@jogwa-log/data-access/supabase/server";
+import LoginForm from "./loginForm";
 
 export const metadata: Metadata = {
   title: "로그인 | Jogwa-log",
@@ -31,9 +32,7 @@ function getAuthErrorMessage(authError?: string) {
   }
 }
 
-export const dynamic = "force-dynamic";
-
-export default async function LoginPage({ searchParams }: LoginPageProps) {
+async function LoginPageContent({ searchParams }: LoginPageProps) {
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
 
@@ -83,5 +82,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         </div>
       </section>
     </main>
+  );
+}
+
+export default function LoginPage({ searchParams }: LoginPageProps) {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageContent searchParams={searchParams} />
+    </Suspense>
   );
 }

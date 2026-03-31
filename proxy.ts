@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 
-import { updateSession } from "./utils/supabase/proxy";
+import { updateSession } from "@jogwa-log/data-access/supabase/proxy";
 
 export async function proxy(request: NextRequest) {
   return updateSession(request);

@@ -1,11 +1,11 @@
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
+import { createClient } from "@jogwa-log/data-access/supabase/browser";
 
 import {
   AUTH_CALLBACK_PATH,
   AUTH_SUCCESS_PATH,
   type OAuthProvider,
 } from "../lib/auth/constants";
-import { createClient } from "../utils/supabase/client";
 
 function getAuthRedirectUrl() {
   const redirectUrl = new URL(AUTH_CALLBACK_PATH, window.location.origin);

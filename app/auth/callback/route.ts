@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@jogwa-log/data-access/supabase/server";
 
 import {
   AUTH_ERROR_OAUTH_CALLBACK,
   AUTH_ERROR_QUERY_KEY,
   LOGIN_PATH,
 } from "../../../lib/auth/constants";
-import { createClient } from "../../../utils/supabase/server";
 
 function redirectToNext(request: Request, next: string) {
   const requestUrl = new URL(request.url);

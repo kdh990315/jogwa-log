@@ -1,4 +1,4 @@
-import HomePageShell from "./home-page-shell";
+import HomePageShell from "./homePageShell";
 
 export default function HomePage() {
   return (

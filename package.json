@@ -14,6 +14,7 @@
     "node": ">=20.9.0"
   },
   "dependencies": {
+    "@jogwa-log/data-access": "workspace:*",
     "@supabase/ssr": "^0.9.0",
     "@supabase/supabase-js": "^2.100.0",
     "lucide-react": "^1.6.0",
