@@ -1,0 +1,346 @@
+# Supabase 인증 및 데이터 설계 현황
+
+작성일: 2026-03-26  
+작업 브랜치: `feat/auth`
+
+## 1. 이 문서를 먼저 남기는 이유
+
+지금 단계에서 가장 비싼 건 화면 몇 개를 더 붙이는 일이 아니라, 인증 경계와 사용자 데이터 구조를 잘못 고정하는 일이다.
+
+이 방식이 최선인 이유는 아래와 같다.
+
+- 이 프로젝트는 `Next.js App Router + Supabase + RLS` 전제가 강하다.
+- 인증을 클라이언트 상태만으로 처리하면 나중에 보호된 데이터 조회 구조를 다시 뜯어고쳐야 한다.
+- 사용자별 조과 데이터는 스키마를 처음 잘못 잡으면 이후 통계/검색/확장 비용이 급격히 커진다.
+- 따라서 지금까지 결정한 인증 구조, provider 범위, 데이터 테이블 초안을 한 번 문서로 고정해두는 편이 이후 작업 속도와 품질 모두에 유리하다.
+
+## 2. 현재 상태 요약
+
+현재까지 정리된 상태는 아래와 같다.
+
+- Supabase MCP 연결 확인 완료
+- `@supabase/ssr` 기반 SSR 쿠키 세션 구조로 마이그레이션 완료
+- 로그인 provider는 `Google`, `Kakao` 2개만 유지
+- `Naver` 버튼은 한 차례 검토했지만 현재는 제거
+- 앱 영역은 서버에서 인증 여부를 확인한 뒤 진입 허용
+- 클라이언트 전역 사용자 상태는 `zustand`로 관리
+- 로그인 API 호출은 `/apis/auth.ts`로 분리
+- 메인 페이지(`/`)에서도 공용 헤더를 재사용하도록 정리
+
+## 3. 현재 인증 아키텍처
+
+### 3-1. 기본 원칙
+
+현재 구조의 핵심은 아래 두 가지다.
+
+- 세션의 진실된 원본은 Supabase에 둔다.
+- UI 편의 상태만 `zustand` store에 반영한다.
+
+즉, `zustand`는 보안 경계가 아니라 렌더링 편의 계층이다.
+
+### 3-2. 클라이언트 / 서버 경계
+
+현재 Supabase 접근 계층은 아래처럼 나뉜다.
+
+- 브라우저 클라이언트: `utils/supabase/client.ts`
+- 서버 클라이언트: `utils/supabase/server.ts`
+- 세션 갱신 proxy: `utils/supabase/proxy.ts`, 루트 `proxy.ts`
+- 공용 인증 API: `apis/auth.ts`
+
+환경 변수는 아래 public 값만 사용한다.
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+- fallback: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY`
+
+현재 구조에서는 `service_role`을 프론트엔드에 쓰지 않는다.
+
+### 3-3. 로그인 플로우
+
+현재 로그인 흐름은 아래 순서다.
+
+1. `/login`에서 provider 버튼 클릭
+2. `apis/auth.ts`의 `createOAuthLoginUrl(provider)` 호출
+3. `supabase.auth.signInWithOAuth()`로 provider 이동
+4. provider 인증 후 `/auth/callback`으로 복귀
+5. `app/auth/callback/route.ts`에서 `exchangeCodeForSession(code)` 실행
+6. 세션 쿠키를 만든 뒤 `/dashboard`로 이동
+
+현재 provider 타입은 아래 둘만 허용한다.
+
+- `google`
+- `kakao`
+
+정의 위치:
+
+- `lib/auth/constants.ts`
+
+### 3-4. 서버 보호 구조
+
+현재 앱 영역 보호는 서버에서 수행한다.
+
+- `proxy.ts`: 요청마다 세션 쿠키 갱신
+- `app/(app)/layout.tsx`: `supabase.auth.getClaims()`로 인증 여부 확인
+- 인증 정보가 없으면 `/login`으로 `redirect()`
+
+이 구조가 중요한 이유는 아래와 같다.
+
+- proxy는 세션 갱신과 빠른 전처리 역할만 맡는다.
+- 실제 보호 판단은 서버 레이아웃에서 다시 수행한다.
+- 따라서 클라이언트에서 store를 조작한다고 해서 보호된 route에 접근할 수는 없다.
+
+### 3-5. 클라이언트 전역 상태
+
+사용자 상태는 `stores/auth-store.ts`에서 관리한다.
+
+저장 값:
+
+- `isLoading`
+- `session`
+- `user`
+
+액션:
+
+- `clearSession`
+- `hydrateSession`
+- `refreshSession`
+- `setSession`
+
+동기화 컴포넌트:
+
+- `components/auth/auth-session-sync.tsx`
+
+이 컴포넌트는 앱 시작 시 현재 세션을 hydrate하고, `onAuthStateChange` 구독으로 세션 변경을 store에 반영한다.
+
+### 3-6. 현재 UI가 실제로 사용하는 사용자 데이터
+
+카카오/구글 로그인 후 현재 UI가 실제로 소비하는 값은 매우 제한적이다.
+
+- `user.user_metadata.full_name`
+- `user.user_metadata.name`
+- `user.user_metadata.nickname`
+- `user.email`
+
+즉, 현재는 `세션 + 이름 계열 메타데이터 + 이메일`만 UI 의미값으로 쓰고 있다.  
+`avatar`, `phone`, 기타 provider 전용 필드는 현재 코드에서 소비하지 않는다.
+
+## 4. Provider 결정 사항
+
+### 4-1. 현재 유지 provider
+
+현재 로그인 화면에서 유지하는 provider는 아래 둘이다.
+
+- `Google`
+- `Kakao`
+
+이 둘은 현재 구조에서 바로 OAuth 로그인 흐름에 연결된다.
+
+### 4-2. Naver를 제거한 이유
+
+`Naver` 버튼은 한 번 UI에 추가했지만 다시 제거했다.
+
+이 판단의 이유는 아래와 같다.
+
+- 2026-03-26 기준 Supabase 공식 Social Login 문서의 기본 지원 목록에 `Naver`가 보이지 않는다.
+- 따라서 `provider: "naver"`를 직접 넣으면 깨진 버튼이 될 가능성이 높다.
+- 현재 단계에서 가장 좋은 선택은 “보여주기용 버튼”이 아니라 “실제로 동작하는 provider만 남기는 것”이다.
+
+정리:
+
+- 현재 프로젝트의 공식 지원 provider는 `Google`, `Kakao`
+- `Naver`가 필요하면 이후 `Custom OAuth Provider` 또는 별도 인증 브리지 전략을 검토
+
+## 5. 메인 페이지와 로그인 페이지 UI 상태
+
+### 5-1. 메인 페이지(`/`)
+
+현재 메인 페이지는 공용 `Header`를 재사용한다.
+
+- 메인 페이지에서도 헤더 노출
+- 다크모드 토글 유지
+- 다크모드 버튼 옆에 대시보드 이동 버튼 추가
+- 메인 페이지에서는 모바일 메뉴 버튼과 사용자 요약은 숨김
+
+이 구조가 좋은 이유는 `Header`를 복제하지 않고, 옵션 prop만 확장해 재사용했기 때문이다.
+
+### 5-2. 로그인 페이지(`/login`)
+
+현재 로그인 페이지는 아래 상태다.
+
+- `Google`, `Kakao` 소셜 로그인 버튼 제공
+- SSR 쿠키 세션 구조를 설명하는 문구 포함
+- provider setup 안내 포함
+- 이미 로그인된 세션이면 `/dashboard`로 즉시 이동
+- OAuth callback 실패 시 에러 메시지 노출
+
+## 6. 보안 판단 정리
+
+현재 기준으로 보안적으로 좋아진 점과 아직 남은 점을 나누면 아래와 같다.
+
+### 6-1. 좋아진 점
+
+- 클라이언트 중심 인증 상태에서 SSR 쿠키 세션 구조로 이동
+- 앱 영역 진입을 서버에서 검증
+- proxy와 서버 레이아웃이 같은 세션 체계를 공유
+- 로그인 관련 Supabase 호출이 한 파일(`/apis/auth.ts`)로 정리되어 관리 포인트가 명확함
+
+### 6-2. 아직 남은 점
+
+- 실제 사용자별 조과 데이터 테이블과 RLS 정책은 아직 만들지 않았다.
+- 현재 `/dashboard`, `/logs`, `/location-stats`는 여전히 mock 성격 데이터가 섞여 있다.
+- 따라서 “인증 구조”는 잡혔지만 “실제 사용자 데이터 보호”는 테이블/RLS까지 가야 완성된다.
+
+### 6-3. 꼭 기억할 기준
+
+- `zustand` store는 보안 장치가 아니다.
+- proxy만으로 인증을 끝내면 안 된다.
+- 최종 보호 판단은 서버에서 계속 수행해야 한다.
+- 사용자 데이터 접근은 결국 Supabase RLS가 기준이 되어야 한다.
+
+## 7. 현재 알려진 개발 경고
+
+이건 치명적 오류는 아니지만, 이후 정리 대상이다.
+
+- Recharts `ResponsiveContainer`가 부모 크기를 읽지 못해 `width(-1)`, `height(-1)` 경고 발생
+- `html { scroll-behavior: smooth; }` 사용 중인데 `<html data-scroll-behavior="smooth">`가 없어 Next.js 경고 발생
+
+정리 우선순위는 인증/DB 연결보다 낮지만, 대시보드 품질 측면에서 나중에 손봐야 한다.
+
+## 8. 사용자 조과 데이터용 테이블 설계 초안
+
+현재까지 본 프로젝트 구조 기준으로는 “출조 기록 본체”와 “기록에 속한 어종 결과”를 나누는 방식이 가장 적절하다.
+
+### 8-1. 이미 존재하는 마스터 테이블
+
+현재 Supabase에 확인된 public 테이블:
+
+- `public.field_types`
+- `public.fish`
+
+역할:
+
+- `field_types`: 바다/민물 같은 필드 유형 마스터
+- `fish`: 어종 마스터
+
+### 8-2. 새로 만드는 핵심 테이블
+
+#### `public.fishing_logs`
+
+출조 자체를 저장하는 본체 테이블.
+
+추천 컬럼:
+
+- `id bigint generated always as identity primary key`
+- `user_id uuid not null references auth.users(id) on delete cascade`
+- `field_type_id bigint not null references public.field_types(id)`
+- `occurred_at timestamptz not null`
+- `location_name text not null`
+- `latitude numeric(9,6) null`
+- `longitude numeric(9,6) null`
+- `weather text null`
+- `water_temperature_c numeric(4,1) null`
+- `tide text null`
+- `method text null`
+- `memo text null`
+- `created_at timestamptz not null default now()`
+- `updated_at timestamptz not null default now()`
+
+#### `public.fishing_log_catches`
+
+한 출조 안에서 잡은 어종 결과를 저장하는 테이블.
+
+추천 컬럼:
+
+- `id bigint generated always as identity primary key`
+- `log_id bigint not null references public.fishing_logs(id) on delete cascade`
+- `fish_id bigint null references public.fish(id)`
+- `custom_fish_name text null`
+- `catch_count integer not null default 0 check (catch_count >= 0)`
+- `max_size_cm numeric(5,1) null check (max_size_cm is null or max_size_cm >= 0)`
+- `is_primary boolean not null default false`
+- `created_at timestamptz not null default now()`
+- `updated_at timestamptz not null default now()`
+
+권장 체크 제약:
+
+- `check (fish_id is not null or custom_fish_name is not null)`
+
+### 8-3. 왜 두 테이블로 나누는가
+
+이 구조가 맞는 이유는 아래와 같다.
+
+- 날짜, 장소, 날씨, 수온, 메모는 “출조”에 붙는 값이다.
+- 마릿수와 최대어 크기는 “어종 결과”에 붙는 값이다.
+- 현재 UI는 어종 1개처럼 보이더라도, 실제 도메인에서는 한 출조에 복수 어종이 자연스럽다.
+- 처음부터 분리해두면 이후 통계, 검색, 다중 어종 지원으로 확장하기 쉽다.
+
+### 8-4. 지금은 만들지 않아도 되는 것
+
+초기 단계 기준에서는 아래는 과한 추상화다.
+
+- `locations` 마스터 테이블
+- `weather` 마스터 테이블
+- `tide` 마스터 테이블
+- `method` 마스터 테이블
+- 별도 `user_fish` 테이블
+
+현재는 문자열/좌표 컬럼으로 충분하다.
+
+### 8-5. RLS 기준
+
+RLS는 아래처럼 가는 것이 기본 전제다.
+
+- `fishing_logs`: `user_id = auth.uid()`
+- `fishing_log_catches`: `log_id`를 통해 상위 `fishing_logs.user_id` 소유권 확인
+
+즉, catch 테이블에 `user_id`를 중복 저장하지 않아도 된다.
+
+### 8-6. 인덱스 권장안
+
+최소 권장 인덱스:
+
+- `fishing_logs (user_id, occurred_at desc)`
+- `fishing_logs (field_type_id, occurred_at desc)`
+- `fishing_log_catches (log_id)`
+- `fishing_log_catches (fish_id)`
+
+선택:
+
+- `unique (log_id, fish_id)`
+
+단, 한 출조에서 같은 어종을 한 행으로만 집계할 경우에만 둔다.
+
+## 9. 다음 작업 우선순위
+
+현재 문서 기준으로 다음 순서는 아래가 가장 자연스럽다.
+
+1. `fishing_logs`, `fishing_log_catches` migration 작성
+2. RLS 정책 작성
+3. 등록 다이얼로그를 실제 Supabase insert로 연결
+4. `/dashboard`, `/logs`, `/location-stats`에서 mock 데이터를 실제 쿼리로 교체
+5. 통계 쿼리와 인덱스 검토
+
+즉, 다음 핵심 단계는 “인증”이 아니라 “실제 사용자 데이터 적재와 조회”다.
+
+## 10. 참고 문서
+
+인증 구조와 provider 판단에 참고한 공식 문서:
+
+- Supabase SSR 가이드: https://supabase.com/docs/guides/auth/server-side
+- Supabase SSR client 생성: https://supabase.com/docs/guides/auth/server-side/creating-a-client?queryGroups=framework&framework=nextjs
+- Supabase SSR advanced guide: https://supabase.com/docs/guides/auth/server-side/advanced-guide
+- Supabase Social Login: https://supabase.com/docs/guides/auth/social-login
+- Supabase Custom OAuth Providers: https://supabase.com/docs/guides/auth/custom-oauth-providers
+- Supabase user-owned table 권장: https://supabase.com/docs/guides/auth/managing-user-data
+- Supabase API/RLS 보안: https://supabase.com/docs/guides/api/securing-your-api
+- Next.js Proxy 문서: https://nextjs.org/docs/app/getting-started/proxy
+
+## 11. 검증 메모
+
+지금까지 주요 인증 구조 변경 시점에는 아래 검증을 통과했다.
+
+- `pnpm lint`
+- `pnpm typecheck`
+- `pnpm build`
+
+최근 provider/UI 조정 단계에서는 구조 변경이 없어서 `lint`, `typecheck` 중심으로 확인했다.

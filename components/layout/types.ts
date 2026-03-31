@@ -10,9 +10,12 @@ export interface LogoProps {
 
 export interface HeaderProps {
   currentMode: string | null;
+  dashboardHref?: string | null;
   isDarkMode: boolean;
   onOpenNavigation: () => void;
   onToggleTheme: () => void;
+  showNavigationToggle?: boolean;
+  showUserSummary?: boolean;
 }
 
 export interface LayoutFrameProps {

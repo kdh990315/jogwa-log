@@ -1,19 +1,26 @@
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabasePublishableKey =
-  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+import { getSupabaseConfig } from "./config";
 
-export function createClient() {
-  if (!supabaseUrl || !supabasePublishableKey) {
-    throw new Error("Supabase public environment variables are not configured.");
-  }
+export async function createClient() {
+  const cookieStore = await cookies();
+  const { supabasePublishableKey, supabaseUrl } = getSupabaseConfig();
 
-  return createSupabaseClient(supabaseUrl, supabasePublishableKey, {
-    auth: {
-      autoRefreshToken: false,
-      detectSessionInUrl: false,
-      persistSession: false,
+  return createServerClient(supabaseUrl, supabasePublishableKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, options, value }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch {
+          // Server Component에서는 cookie write가 막힐 수 있습니다.
+        }
+      },
     },
   });
 }
