@@ -1,9 +1,5 @@
-import { DashboardView } from "../../../components/dashboard/dashboardView";
-import {
-  getDashboardData,
-  getFishingMode,
-} from "../../../lib/mock/dashboardData";
-import { getFish } from "../cachedData";
+import { DashboardView } from "./_components/dashboardView";
+import { getDashboardData, getFishingMode } from "@/lib/mock/dashboardData";
 
 interface DashboardPageProps {
   searchParams?: Promise<{
@@ -17,10 +13,6 @@ export default async function DashboardPage({
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const activeMode = getFishingMode(resolvedSearchParams?.mode);
   const dashboardData = getDashboardData(activeMode);
-
-  const data = await getFish();
-
-  console.log(data);
 
   return <DashboardView activeMode={activeMode} data={dashboardData} />;
 }

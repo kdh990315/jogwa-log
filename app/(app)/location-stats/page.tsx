@@ -1,6 +1,6 @@
-import { LocationStatsView } from "../../../components/locationStats/locationStatsView";
-import { getFishingMode } from "../../../lib/mock/dashboardData";
-import { getLocationStatsData } from "../../../lib/mock/locationStatsData";
+import { LocationStatsView } from "./_components/locationStatsView";
+import { getFishingMode } from "@/lib/mock/dashboardData";
+import { getLocationStatsData } from "@/lib/mock/locationStatsData";
 
 interface LocationStatsPageProps {
   searchParams?: Promise<{

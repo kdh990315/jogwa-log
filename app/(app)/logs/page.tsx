@@ -1,6 +1,6 @@
-import { LogsView } from "../../../components/logs/logsView";
-import { getFishingMode } from "../../../lib/mock/dashboardData";
-import { getLogs } from "../../../lib/mock/logsData";
+import { LogsView } from "./_components/logsView";
+import { getFishingMode } from "@/lib/mock/dashboardData";
+import { getLogs } from "@/lib/mock/logsData";
 
 interface LogsPageProps {
   searchParams?: Promise<{
