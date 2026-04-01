@@ -1,25 +1,45 @@
+import { useEffect, useState } from "react";
+import { useFormContext, useWatch } from "react-hook-form";
+
+import { ChevronRightIcon } from "@/components/icons/chevronRight/chevronRight";
 import { SearchIcon } from "@/components/icons/search/search";
+import { SpeciesSelectSheet } from "@/components/ui/speciesSelectSheet";
 
 import { WEATHER_OPTIONS } from "./registerLog.constants";
 import type {
   RegisterLogFishingType,
   RegisterLogFormState,
-  UpdateRegisterLogField,
 } from "./registerLog.types";
 
 interface RegisterCatchInfoStepProps {
   fishingType: RegisterLogFishingType;
-  formState: RegisterLogFormState;
-  onFieldChange: UpdateRegisterLogField;
   speciesOptions: readonly string[];
 }
 
 export function RegisterCatchInfoStep({
   fishingType,
-  formState,
-  onFieldChange,
   speciesOptions,
 }: RegisterCatchInfoStepProps) {
+  const [isSpeciesSheetOpen, setIsSpeciesSheetOpen] = useState(false);
+  const { control, register, setValue } =
+    useFormContext<RegisterLogFormState>();
+  const catchCount = useWatch({ control, name: "catchCount" }) ?? "";
+  const maxSize = useWatch({ control, name: "maxSize" }) ?? "";
+  const selectedSpecies = useWatch({ control, name: "species" }) ?? "";
+  const tide = useWatch({ control, name: "tide" }) ?? "";
+  const isZeroCatchCount = isZeroNumberString(catchCount);
+
+  useEffect(() => {
+    if (!isZeroCatchCount || maxSize.trim().length === 0) {
+      return;
+    }
+
+    setValue("maxSize", "", {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }, [isZeroCatchCount, maxSize, setValue]);
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
       <div className="grid grid-cols-2 gap-4">
@@ -33,9 +53,8 @@ export function RegisterCatchInfoStep({
           <input
             className="w-full rounded-xl border border-line bg-surface-muted p-3 text-sm font-medium text-fg transition-all focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             id="register-log-date"
-            onChange={(event) => onFieldChange("date", event.target.value)}
             type="date"
-            value={formState.date}
+            {...register("date", { required: true })}
           />
         </div>
         <div>
@@ -48,9 +67,8 @@ export function RegisterCatchInfoStep({
           <input
             className="w-full rounded-xl border border-line bg-surface-muted p-3 text-sm font-medium text-fg transition-all focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             id="register-log-time"
-            onChange={(event) => onFieldChange("time", event.target.value)}
             type="time"
-            value={formState.time}
+            {...register("time", { required: true })}
           />
         </div>
       </div>
@@ -62,39 +80,28 @@ export function RegisterCatchInfoStep({
         >
           대상 어종
         </label>
-        <div className="relative">
-          <SearchIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-muted" />
-          <input
-            className="w-full rounded-xl border border-line bg-surface-muted py-3 pl-10 pr-4 text-sm text-fg transition-all placeholder:text-fg-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
-            id="register-log-species"
-            onChange={(event) => onFieldChange("species", event.target.value)}
-            placeholder="어종을 검색하세요 (예: 광어)"
-            type="text"
-            value={formState.species}
-          />
-        </div>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {speciesOptions.map((species, index) => {
-            const isActive = formState.species
-              ? formState.species === species
-              : index === 0;
-
-            return (
-              <button
-                className={`rounded-md border px-2.5 py-1 text-xs transition-colors ${
-                  isActive
-                    ? "border-brand-border bg-brand-surface text-brand-fg hover:bg-brand-surface"
-                    : "border-line bg-surface-card text-fg-dim hover:bg-surface-muted"
-                }`}
-                key={species}
-                onClick={() => onFieldChange("species", species)}
-                type="button"
-              >
-                {species}
-              </button>
-            );
+        <input
+          type="hidden"
+          {...register("species", {
+            validate: (value) => value.trim().length > 0,
           })}
-        </div>
+        />
+        <button
+          className="flex w-full items-center justify-between rounded-xl border border-line bg-surface-muted py-3 pl-4 pr-3 text-left text-sm text-fg transition-all hover:border-brand-border hover:bg-surface-card focus:outline-none focus:ring-2 focus:ring-brand/20"
+          id="register-log-species"
+          onClick={() => setIsSpeciesSheetOpen(true)}
+          type="button"
+        >
+          <span className="flex items-center gap-2">
+            <SearchIcon className="h-4 w-4 text-fg-muted" />
+            <span
+              className={selectedSpecies ? "text-fg" : "text-fg-muted"}
+            >
+              {selectedSpecies || "어종을 선택하세요"}
+            </span>
+          </span>
+          <ChevronRightIcon className="h-4 w-4 text-fg-muted" />
+        </button>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
@@ -110,12 +117,12 @@ export function RegisterCatchInfoStep({
               className="w-full rounded-xl border border-line bg-surface-muted py-3 pl-4 pr-12 text-sm font-medium text-fg transition-all placeholder:text-fg-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               id="register-log-count"
               inputMode="numeric"
-              onChange={(event) =>
-                onFieldChange("catchCount", event.target.value)
-              }
+              min="0"
               placeholder="0"
               type="number"
-              value={formState.catchCount}
+              {...register("catchCount", {
+                validate: (value) => isNonNegativeNumberString(value),
+              })}
             />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-fg-muted">
               마리
@@ -131,18 +138,36 @@ export function RegisterCatchInfoStep({
           </label>
           <div className="relative">
             <input
-              className="w-full rounded-xl border border-line bg-surface-muted py-3 pl-4 pr-12 text-sm font-medium text-fg transition-all placeholder:text-fg-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+              className="w-full rounded-xl border border-line bg-surface-muted py-3 pl-4 pr-12 text-sm font-medium text-fg transition-all placeholder:text-fg-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:cursor-not-allowed disabled:bg-surface-panel disabled:text-fg-faint disabled:opacity-70"
+              disabled={isZeroCatchCount}
               id="register-log-size"
               inputMode="decimal"
-              onChange={(event) => onFieldChange("maxSize", event.target.value)}
-              placeholder="0.0"
+              min="0"
+              placeholder={isZeroCatchCount ? "0마리" : "0.0"}
+              step="0.1"
               type="number"
-              value={formState.maxSize}
+              {...register("maxSize", {
+                validate: (value) => {
+                  if (isZeroCatchCount) {
+                    return value.trim().length === 0;
+                  }
+
+                  return (
+                    value.trim().length === 0 ||
+                    isNonNegativeNumberString(value)
+                  );
+                },
+              })}
             />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-fg-muted">
               cm
             </span>
           </div>
+          {isZeroCatchCount ? (
+            <p className="mt-1.5 ml-1 text-[11px] text-fg-faint">
+              마릿수가 0이면 최대어 크기는 입력할 수 없습니다.
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -165,7 +190,11 @@ export function RegisterCatchInfoStep({
               placeholder="날짜를 선택하면 자동 계산됩니다."
               readOnly
               type="text"
-              value={formState.tide}
+              value={tide}
+              {...register("tide", {
+                validate: (value) =>
+                  fishingType !== "sea" || value.trim().length > 0,
+              })}
             />
             <p className="mt-1.5 ml-1 text-[11px] text-fg-faint">
               날짜 기준으로 자동 계산됩니다.
@@ -182,8 +211,7 @@ export function RegisterCatchInfoStep({
           <select
             className="w-full rounded-xl border border-line bg-surface-muted p-3 text-sm text-fg transition-all focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
             id="register-log-weather"
-            onChange={(event) => onFieldChange("weather", event.target.value)}
-            value={formState.weather}
+            {...register("weather", { required: true })}
           >
             <option value="">선택</option>
             {WEATHER_OPTIONS.map((weather) => (
@@ -205,12 +233,9 @@ export function RegisterCatchInfoStep({
               className="w-full rounded-xl border border-line bg-surface-muted py-3 pl-3 pr-8 text-sm font-medium text-fg transition-all placeholder:text-fg-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
               id="register-log-temperature"
               inputMode="decimal"
-              onChange={(event) =>
-                onFieldChange("waterTemperature", event.target.value)
-              }
               placeholder="-"
               type="number"
-              value={formState.waterTemperature}
+              {...register("waterTemperature")}
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-fg-muted">
               ℃
@@ -218,6 +243,40 @@ export function RegisterCatchInfoStep({
           </div>
         </div>
       </div>
+
+      {isSpeciesSheetOpen ? (
+        <SpeciesSelectSheet
+          isOpen={isSpeciesSheetOpen}
+          onClose={() => setIsSpeciesSheetOpen(false)}
+          onSelect={(species) => {
+            setValue("species", species, {
+              shouldDirty: true,
+              shouldValidate: true,
+            });
+            setIsSpeciesSheetOpen(false);
+          }}
+          options={speciesOptions}
+          selectedSpecies={selectedSpecies}
+        />
+      ) : null}
     </div>
   );
+}
+
+function isNonNegativeNumberString(value: string) {
+  if (value.trim().length === 0) {
+    return false;
+  }
+
+  const normalizedValue = Number(value);
+
+  return Number.isFinite(normalizedValue) && normalizedValue >= 0;
+}
+
+function isZeroNumberString(value: string) {
+  if (value.trim().length === 0) {
+    return false;
+  }
+
+  return Number(value) === 0;
 }

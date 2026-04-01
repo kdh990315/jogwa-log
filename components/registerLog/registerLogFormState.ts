@@ -9,10 +9,14 @@ export function createInitialFormState(): RegisterLogFormState {
   const now = new Date();
 
   return {
-    catchCount: "",
+    catchCount: "0",
     date: formatDateInputValue(now),
     fieldTypeId: "",
+    fishingType: null,
+    latitude: null,
+    locationName: "",
     locationQuery: "",
+    longitude: null,
     maxSize: "",
     memo: "",
     species: "",
