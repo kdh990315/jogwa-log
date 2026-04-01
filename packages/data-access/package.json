@@ -5,6 +5,7 @@
   "type": "module",
   "sideEffects": false,
   "exports": {
+    "./api/logs/createLog": "./src/api/logs/createLog.ts",
     "./api/referenceData/fieldTypes": "./src/api/referenceData/fieldTypes.ts",
     "./api/referenceData/fish": "./src/api/referenceData/fish.ts",
     "./supabase/browser": "./src/supabase/browser.ts",

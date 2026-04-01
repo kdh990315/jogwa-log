@@ -48,7 +48,7 @@ type LocationNameSourceRef = {
   current: LocationNameSource;
 };
 
-interface SelectLocationOptions {
+interface PickLocationOptions {
   pointName?: string;
   successMessage: string;
 }
@@ -84,7 +84,7 @@ export function RegisterLocationStep() {
   }, [setValue]);
 
   useEffect(() => {
-    function initializeMap() {
+    function initMap() {
       if (!mapContainerRef.current || !window.kakao?.maps) {
         return;
       }
@@ -120,7 +120,7 @@ export function RegisterLocationStep() {
               ? "선택한 위치 좌표를 저장했습니다."
               : "선택한 위치 좌표를 저장했습니다. 포인트 명칭을 입력해주세요.";
 
-          selectLocation({
+          pickLocation({
             locationNameSourceRef,
             mapRef,
             options: { successMessage },
@@ -142,15 +142,15 @@ export function RegisterLocationStep() {
     const kakaoScript = document.getElementById("kakao-map-sdk");
 
     if (window.kakao?.maps) {
-      initializeMap();
+      initMap();
       return;
     }
 
-    kakaoScript?.addEventListener("load", initializeMap);
+    kakaoScript?.addEventListener("load", initMap);
 
     return () => {
-      kakaoScript?.removeEventListener("load", initializeMap);
-      clearMarkers(markersRef.current);
+      kakaoScript?.removeEventListener("load", initMap);
+      removeMarkers(markersRef.current);
       selectedMarkerRef.current?.setMap(null);
       selectedMarkerImageRef.current = null;
       selectedMarkerRef.current = null;
@@ -160,7 +160,7 @@ export function RegisterLocationStep() {
     };
   }, []);
 
-  function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
+  function searchPlaces(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     if (!window.kakao?.maps || !mapRef.current || !placesRef.current) {
@@ -182,7 +182,7 @@ export function RegisterLocationStep() {
         return;
       }
 
-      clearMarkers(markersRef.current);
+      removeMarkers(markersRef.current);
       markersRef.current = [];
 
       if (status === kakaoMaps.services.Status.OK) {
@@ -203,7 +203,7 @@ export function RegisterLocationStep() {
             mapRef.current?.setCenter(position);
             mapRef.current?.setLevel(6);
 
-            selectLocation({
+            pickLocation({
               locationNameSourceRef,
               mapRef,
               options: {
@@ -237,7 +237,7 @@ export function RegisterLocationStep() {
     });
   }
 
-  function handleLocationNameChange(event: ChangeEvent<HTMLInputElement>) {
+  function syncLocationNameSource(event: ChangeEvent<HTMLInputElement>) {
     locationNameSourceRef.current = event.target.value.trim()
       ? "manual"
       : "empty";
@@ -247,7 +247,7 @@ export function RegisterLocationStep() {
 
   return (
     <div className="flex h-full flex-col space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-      <form className="space-y-3" onSubmit={handleSearchSubmit}>
+      <form className="space-y-3" onSubmit={searchPlaces}>
         <label
           className="mb-1.5 ml-1 block text-xs font-bold uppercase text-fg-faint"
           htmlFor="register-log-location-search"
@@ -296,7 +296,7 @@ export function RegisterLocationStep() {
               id="register-log-location-name"
               onBlur={field.onBlur}
               onChange={(event) => {
-                handleLocationNameChange(event);
+                syncLocationNameSource(event);
                 field.onChange(event);
               }}
               placeholder="직접 이름을 입력하거나 검색 결과를 클릭하세요"
@@ -345,7 +345,7 @@ export function RegisterLocationStep() {
   );
 }
 
-function getSelectedMarkerImage({
+function getMarkerImage({
   selectedMarkerImageRef,
 }: {
   selectedMarkerImageRef: MarkerImageRef;
@@ -372,7 +372,7 @@ function getSelectedMarkerImage({
   return selectedMarkerImageRef.current;
 }
 
-function placeSelectedMarker({
+function placeMarker({
   mapRef,
   position,
   selectedMarkerImageRef,
@@ -384,7 +384,7 @@ function placeSelectedMarker({
   selectedMarkerRef: MarkerRef;
 }) {
   const kakaoMaps = window.kakao?.maps;
-  const markerImage = getSelectedMarkerImage({ selectedMarkerImageRef });
+  const markerImage = getMarkerImage({ selectedMarkerImageRef });
 
   if (!kakaoMaps || !mapRef.current || !markerImage) {
     return false;
@@ -404,7 +404,7 @@ function placeSelectedMarker({
   return true;
 }
 
-function selectLocation({
+function pickLocation({
   locationNameSourceRef,
   mapRef,
   options,
@@ -416,14 +416,14 @@ function selectLocation({
 }: {
   locationNameSourceRef: LocationNameSourceRef;
   mapRef: MapRef;
-  options: SelectLocationOptions;
+  options: PickLocationOptions;
   position: KakaoMapsLatLng;
   setValue: UseFormSetValue<RegisterLogFormState>;
   selectedMarkerImageRef: MarkerImageRef;
   selectedMarkerRef: MarkerRef;
   setSearchMessage: (message: string) => void;
 }) {
-  const isMarkerPlaced = placeSelectedMarker({
+  const isMarkerPlaced = placeMarker({
     mapRef,
     position,
     selectedMarkerImageRef,
@@ -459,6 +459,6 @@ function selectLocation({
   setSearchMessage(options.successMessage);
 }
 
-function clearMarkers(markers: Array<{ setMap(map: unknown): void }>) {
+function removeMarkers(markers: Array<{ setMap(map: unknown): void }>) {
   markers.forEach((marker) => marker.setMap(null));
 }

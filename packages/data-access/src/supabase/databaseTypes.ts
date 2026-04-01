@@ -105,7 +105,7 @@ export type Database = {
           field_type_id: number;
           id: number;
           latitude: number | null;
-          location_name: string | null;
+          location_name: string;
           longitude: number | null;
           memo: string | null;
           method: string | null;
@@ -115,7 +115,7 @@ export type Database = {
           updated_at: string;
           user_id: string;
           water_temperature_c: number | null;
-          weather: string | null;
+          weather: string;
         };
         Insert: {
           created_at?: string;
@@ -123,7 +123,7 @@ export type Database = {
           field_type_id: number;
           id?: number;
           latitude?: number | null;
-          location_name?: string | null;
+          location_name: string;
           longitude?: number | null;
           memo?: string | null;
           method?: string | null;
@@ -133,7 +133,7 @@ export type Database = {
           updated_at?: string;
           user_id: string;
           water_temperature_c?: number | null;
-          weather?: string | null;
+          weather: string;
         };
         Update: {
           created_at?: string;
@@ -141,7 +141,7 @@ export type Database = {
           field_type_id?: number;
           id?: number;
           latitude?: number | null;
-          location_name?: string | null;
+          location_name?: string;
           longitude?: number | null;
           memo?: string | null;
           method?: string | null;
@@ -151,7 +151,7 @@ export type Database = {
           updated_at?: string;
           user_id?: string;
           water_temperature_c?: number | null;
-          weather?: string | null;
+          weather?: string;
         };
         Relationships: [
           {
@@ -199,22 +199,21 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      create_fishing_log: {
+      create_fishing_log_from_form: {
         Args: {
-          p_catch_count?: number | null;
-          p_custom_target_fish_name?: string | null;
+          p_catch_count?: number;
+          p_date: string;
           p_field_type_id: number;
-          p_latitude?: number | null;
-          p_location_name?: string | null;
-          p_longitude?: number | null;
-          p_max_size_cm?: number | null;
-          p_memo?: string | null;
-          p_method?: string | null;
-          p_occurred_at: string;
-          p_target_fish_id?: number | null;
-          p_tide?: string | null;
-          p_water_temperature_c?: number | null;
-          p_weather?: string | null;
+          p_latitude?: number;
+          p_location_name: string;
+          p_longitude?: number;
+          p_max_size_cm?: number;
+          p_memo?: string;
+          p_species_name: string;
+          p_tide?: string;
+          p_time: string;
+          p_water_temperature_c?: number;
+          p_weather: string;
         };
         Returns: number;
       };

@@ -27,10 +27,10 @@ export function RegisterCatchInfoStep({
   const maxSize = useWatch({ control, name: "maxSize" }) ?? "";
   const selectedSpecies = useWatch({ control, name: "species" }) ?? "";
   const tide = useWatch({ control, name: "tide" }) ?? "";
-  const isZeroCatchCount = isZeroNumberString(catchCount);
+  const isZeroCount = isZero(catchCount);
 
   useEffect(() => {
-    if (!isZeroCatchCount || maxSize.trim().length === 0) {
+    if (!isZeroCount || maxSize.trim().length === 0) {
       return;
     }
 
@@ -38,7 +38,7 @@ export function RegisterCatchInfoStep({
       shouldDirty: true,
       shouldValidate: true,
     });
-  }, [isZeroCatchCount, maxSize, setValue]);
+  }, [isZeroCount, maxSize, setValue]);
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
@@ -119,9 +119,10 @@ export function RegisterCatchInfoStep({
               inputMode="numeric"
               min="0"
               placeholder="0"
+              step="1"
               type="number"
               {...register("catchCount", {
-                validate: (value) => isNonNegativeNumberString(value),
+                validate: (value) => isWholeNumber(value),
               })}
             />
             <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-fg-muted">
@@ -139,23 +140,20 @@ export function RegisterCatchInfoStep({
           <div className="relative">
             <input
               className="w-full rounded-xl border border-line bg-surface-muted py-3 pl-4 pr-12 text-sm font-medium text-fg transition-all placeholder:text-fg-muted focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20 disabled:cursor-not-allowed disabled:bg-surface-panel disabled:text-fg-faint disabled:opacity-70"
-              disabled={isZeroCatchCount}
+              disabled={isZeroCount}
               id="register-log-size"
               inputMode="decimal"
               min="0"
-              placeholder={isZeroCatchCount ? "0마리" : "0.0"}
+              placeholder={isZeroCount ? "0마리" : "0.0"}
               step="0.1"
               type="number"
               {...register("maxSize", {
                 validate: (value) => {
-                  if (isZeroCatchCount) {
+                  if (isZeroCount) {
                     return value.trim().length === 0;
                   }
 
-                  return (
-                    value.trim().length === 0 ||
-                    isNonNegativeNumberString(value)
-                  );
+                  return value.trim().length === 0 || isNumber(value);
                 },
               })}
             />
@@ -163,7 +161,7 @@ export function RegisterCatchInfoStep({
               cm
             </span>
           </div>
-          {isZeroCatchCount ? (
+          {isZeroCount ? (
             <p className="mt-1.5 ml-1 text-[11px] text-fg-faint">
               마릿수가 0이면 최대어 크기는 입력할 수 없습니다.
             </p>
@@ -263,7 +261,21 @@ export function RegisterCatchInfoStep({
   );
 }
 
-function isNonNegativeNumberString(value: string) {
+function isWholeNumber(value: string) {
+  if (value.trim().length === 0) {
+    return false;
+  }
+
+  const normalizedValue = Number(value);
+
+  return (
+    Number.isInteger(normalizedValue) &&
+    Number.isFinite(normalizedValue) &&
+    normalizedValue >= 0
+  );
+}
+
+function isNumber(value: string) {
   if (value.trim().length === 0) {
     return false;
   }
@@ -273,7 +285,7 @@ function isNonNegativeNumberString(value: string) {
   return Number.isFinite(normalizedValue) && normalizedValue >= 0;
 }
 
-function isZeroNumberString(value: string) {
+function isZero(value: string) {
   if (value.trim().length === 0) {
     return false;
   }

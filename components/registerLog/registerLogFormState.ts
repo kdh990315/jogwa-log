@@ -5,7 +5,7 @@ import {
 
 import type { RegisterLogFormState } from "./registerLog.types";
 
-export function createInitialFormState(): RegisterLogFormState {
+export function createInitialState(): RegisterLogFormState {
   const now = new Date();
 
   return {
