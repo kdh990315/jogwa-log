@@ -105,6 +105,13 @@
 }
 
 @theme inline {
+  --text-xs: 0.875rem;
+  --text-xs--line-height: calc(1.25 / 0.875);
+  --text-sm: 1rem;
+  --text-sm--line-height: calc(1.5 / 1);
+  --text-base: 1.125rem;
+  --text-base--line-height: calc(1.75 / 1.125);
+
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
   --color-brand-strong: var(--brand-strong);
@@ -189,6 +196,26 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+[class*="text-[9px]"] {
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+[class*="text-[10px]"] {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+[class*="text-[11px]"] {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+[class*="text-[12px]"] {
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 ::selection {
