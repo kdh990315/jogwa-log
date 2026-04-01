@@ -5,11 +5,19 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { Card } from "@/components/ui/card";
 import type { TideStat } from "@/lib/mock/dashboardData";
 
-import { V1 } from "./shared";
+import { TOOLTIP_STYLE, V1 } from "./shared";
 
 interface TideAnalysisCardProps {
   insight: string;
   tideStats: TideStat[];
+}
+
+interface TideTooltipProps {
+  active?: boolean;
+  label?: string;
+  payload?: Array<{
+    payload?: TideStat;
+  }>;
 }
 
 export function TideAnalysisCard({
@@ -51,16 +59,8 @@ export function TideAnalysisCard({
               width={36}
             />
             <Tooltip
-              contentStyle={{
-                backgroundColor: "rgba(15, 23, 42, 0.9)",
-                border: "none",
-                borderRadius: "12px",
-                boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
-                color: "#f8fafc",
-                fontSize: "11px",
-              }}
+              content={<TideTooltip />}
               cursor={{ fill: "rgba(51, 65, 85, 0.1)" }}
-              formatter={(value) => [`${value}회`, "출조"]}
             />
             <Bar
               barSize={12}
@@ -76,5 +76,40 @@ export function TideAnalysisCard({
         <strong className="text-[color:var(--brand-fg)]">분석:</strong> {insight}
       </p>
     </Card>
+  );
+}
+
+function TideTooltip({
+  active,
+  label,
+  payload,
+}: TideTooltipProps) {
+  if (!active || !payload?.length) {
+    return null;
+  }
+
+  const datum = payload[0]?.payload as TideStat | undefined;
+
+  if (!datum) {
+    return null;
+  }
+
+  return (
+    <div
+      className="min-w-[132px] space-y-1.5 px-3 py-2"
+      style={{ ...TOOLTIP_STYLE, whiteSpace: "nowrap" }}
+    >
+      <p className="border-b border-slate-700/70 pb-1 font-semibold text-slate-100">
+        {label}
+      </p>
+      <div className="flex items-center justify-between gap-3 text-slate-200">
+        <span>출조횟수</span>
+        <span className="font-semibold text-slate-50">{datum.tripCount}회</span>
+      </div>
+      <div className="flex items-center justify-between gap-3 text-slate-200">
+        <span>조과횟수</span>
+        <span className="font-semibold text-slate-50">{datum.count}회</span>
+      </div>
+    </div>
   );
 }

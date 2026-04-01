@@ -34,6 +34,7 @@ export interface LocationPerformanceStat {
 }
 
 export interface TideStat {
+  tripCount: number;
   count: number;
   label: string;
 }
@@ -353,21 +354,21 @@ export const DASHBOARD_DATA: Record<FishingMode, DashboardData> = {
     ],
     tideInsight: "4물과 10물이 가장 안정적으로 조과를 만들어냅니다.",
     tideStats: [
-      { count: 2, label: "무시" },
-      { count: 5, label: "1물" },
-      { count: 8, label: "2물" },
-      { count: 12, label: "3물" },
-      { count: 25, label: "4물" },
-      { count: 18, label: "5물" },
-      { count: 10, label: "6물" },
-      { count: 4, label: "7물" },
-      { count: 6, label: "8물" },
-      { count: 15, label: "9물" },
-      { count: 20, label: "10물" },
-      { count: 14, label: "11물" },
-      { count: 9, label: "12물" },
-      { count: 5, label: "13물" },
-      { count: 3, label: "조금" },
+      { tripCount: 1, count: 2, label: "무시" },
+      { tripCount: 2, count: 5, label: "1물" },
+      { tripCount: 3, count: 8, label: "2물" },
+      { tripCount: 4, count: 12, label: "3물" },
+      { tripCount: 6, count: 25, label: "4물" },
+      { tripCount: 5, count: 18, label: "5물" },
+      { tripCount: 3, count: 10, label: "6물" },
+      { tripCount: 2, count: 4, label: "7물" },
+      { tripCount: 2, count: 6, label: "8물" },
+      { tripCount: 4, count: 15, label: "9물" },
+      { tripCount: 5, count: 20, label: "10물" },
+      { tripCount: 4, count: 14, label: "11물" },
+      { tripCount: 3, count: 9, label: "12물" },
+      { tripCount: 2, count: 5, label: "13물" },
+      { tripCount: 1, count: 3, label: "조금" },
     ],
     timeInsight: "새벽과 저녁 물돌이 시간대가 조과를 가장 많이 만듭니다.",
     timePatterns: [
