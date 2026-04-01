@@ -28,12 +28,12 @@ export function LogsFilters({
   speciesList,
 }: LogsFiltersProps) {
   return (
-    <div className="rounded-2xl border-none bg-white p-3 shadow-sm">
+    <div className="rounded-2xl border border-line bg-surface-card p-3 shadow-sm">
       <div className="flex flex-col gap-2 sm:flex-row">
         <div className="relative flex-1">
           <SearchIcon className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-fg-muted" />
           <input
-            className="w-full rounded-lg border border-line bg-surface-muted py-1.5 pl-8 pr-3 text-xs text-fg outline-none focus:ring-1 focus:ring-brand-fg"
+            className="w-full rounded-lg border border-line bg-surface-muted py-1.5 pl-8 pr-3 text-xs text-fg outline-none placeholder:text-fg-muted focus:ring-1 focus:ring-brand-fg"
             onChange={(event) => onSearchChange(event.target.value)}
             placeholder="어종, 장소 검색..."
             value={search}

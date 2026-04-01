@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 import { ChevronDownIcon } from "@/components/icons/chevronDown/chevronDown";
 import { ChevronUpIcon } from "@/components/icons/chevronUp/chevronUp";
 import { Clock3Icon } from "@/components/icons/clock3/clock3";
@@ -23,12 +21,19 @@ import { MonthlyMiniChart } from "./monthlyMiniChart";
 import { SpeciesDonutChart } from "./speciesDonutChart";
 
 interface LocationCardProps {
+  expanded: boolean;
   location: LocationStatDetail;
+  onToggle: () => void;
   rank: number;
 }
 
-export function LocationCard({ location, rank }: LocationCardProps) {
-  const [expanded, setExpanded] = useState(false);
+export function LocationCard({
+  expanded,
+  location,
+  onToggle,
+  rank,
+}: LocationCardProps) {
+  const recentLogsSectionId = `location-recent-logs-${location.id}`;
 
   return (
     <Card className="flex flex-col overflow-hidden border border-line-card p-0 shadow-sm transition-shadow hover:shadow-md">
@@ -72,7 +77,7 @@ export function LocationCard({ location, rank }: LocationCardProps) {
         <CompactStat label="출조" value={`${location.totalTrips}회`} />
         <CompactStat label="평균 조과" value={`${location.averageCatch}마리`} />
         <CompactStat
-          label="평균 씨즈"
+          label="평균 사이즈"
           value={location.averageSize > 0 ? `${location.averageSize}cm` : "-"}
         />
         <CompactStat label="최대 조과" value={`${location.maxCatch}마리`} />
@@ -124,8 +129,10 @@ export function LocationCard({ location, rank }: LocationCardProps) {
       </div>
 
       <button
+        aria-controls={recentLogsSectionId}
+        aria-expanded={expanded}
         className="flex w-full items-center justify-between border-t border-line-muted px-4 py-2 text-[10px] font-medium text-fg-faint transition-colors hover:bg-surface-muted"
-        onClick={() => setExpanded((previousState) => !previousState)}
+        onClick={onToggle}
         type="button"
       >
         <span>최근 출조 기록</span>
@@ -137,7 +144,7 @@ export function LocationCard({ location, rank }: LocationCardProps) {
       </button>
 
       {expanded ? (
-        <div className="space-y-1.5 px-4 pb-3">
+        <div className="space-y-1.5 px-4 py-3" id={recentLogsSectionId}>
           {location.recentLogs.map((log) => (
             <div
               className="flex items-center justify-between rounded-lg border border-line bg-surface-muted px-2 py-1.5"

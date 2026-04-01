@@ -15,7 +15,7 @@ export function RegisterFishingTypeStep({
 }: RegisterFishingTypeStepProps) {
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-      <h3 className="mb-6 text-center text-lg font-bold text-slate-900">
+      <h3 className="mb-6 text-center text-lg font-bold text-fg">
         어떤 낚시를 다녀오셨나요?
       </h3>
       <div className="grid grid-cols-2 gap-4">
@@ -45,7 +45,7 @@ export function RegisterFishingTypeStep({
             >
               바다 낚시
             </span>
-            <span className="mt-1 text-xs text-slate-400">
+            <span className="mt-1 text-xs text-fg-muted">
               광어, 우럭, 쭈꾸미 등
             </span>
           </div>
@@ -82,7 +82,7 @@ export function RegisterFishingTypeStep({
             >
               민물 낚시
             </span>
-            <span className="mt-1 text-xs text-slate-400">
+            <span className="mt-1 text-xs text-fg-muted">
               배스, 쏘가리, 붕어 등
             </span>
           </div>

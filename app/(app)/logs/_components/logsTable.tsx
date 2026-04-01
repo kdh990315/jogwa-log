@@ -43,7 +43,12 @@ export function LogsTable({
                   onClick={() => onToggleSort("date")}
                   type="button"
                 >
-                  날짜 <SortIcon activeColumn={sortKey} column="date" direction={sortDir} />
+                  날짜
+                  <SortIcon
+                    activeColumn={sortKey}
+                    column="date"
+                    direction={sortDir}
+                  />
                 </button>
               </th>
               <th className="whitespace-nowrap px-4 py-3 font-medium">어종</th>
@@ -53,7 +58,12 @@ export function LogsTable({
                   onClick={() => onToggleSort("count")}
                   type="button"
                 >
-                  마릿수 <SortIcon activeColumn={sortKey} column="count" direction={sortDir} />
+                  마릿수
+                  <SortIcon
+                    activeColumn={sortKey}
+                    column="count"
+                    direction={sortDir}
+                  />
                 </button>
               </th>
               <th className="whitespace-nowrap px-4 py-3 font-medium">
@@ -62,7 +72,12 @@ export function LogsTable({
                   onClick={() => onToggleSort("size")}
                   type="button"
                 >
-                  씨즈 <SortIcon activeColumn={sortKey} column="size" direction={sortDir} />
+                  사이즈
+                  <SortIcon
+                    activeColumn={sortKey}
+                    column="size"
+                    direction={sortDir}
+                  />
                 </button>
               </th>
               <th className="whitespace-nowrap px-4 py-3 font-medium">채비</th>
@@ -76,7 +91,10 @@ export function LogsTable({
           <tbody>
             {filteredLogs.length === 0 ? (
               <tr>
-                <td className="px-4 py-12 text-center text-fg-muted" colSpan={8}>
+                <td
+                  className="px-4 py-12 text-center text-fg-muted"
+                  colSpan={8}
+                >
                   <FishIcon className="mx-auto mb-2 h-8 w-8 opacity-30" />
                   <p className="text-sm">검색 결과가 없습니다</p>
                 </td>
@@ -98,15 +116,21 @@ export function LogsTable({
       {filteredLogs.length > 0 ? (
         <div className="flex items-center justify-between border-t border-line bg-surface-muted/30 px-4 py-3">
           <p className="text-[10px] text-fg-muted">
-            총 <span className="font-semibold text-fg-dim">{filteredLogs.length}건</span> ·
-            합계 <span className="font-semibold text-brand-fg">{totalCatch}마리</span>
+            총
+            <span className="font-semibold text-fg-dim">
+              {filteredLogs.length}건
+            </span>
+            · 합계
+            <span className="font-semibold text-brand-fg">
+              {totalCatch}마리
+            </span>
           </p>
           {bestDay ? (
             <p className="hidden text-[10px] text-fg-muted sm:block">
-              최고 기록:{" "}
+              최고 기록:
               <span className="font-semibold text-fg-dim">
-                {formatShortMonthDay(bestDay.occurredOn)} · {bestDay.count}마리 (
-                {bestDay.species})
+                {formatShortMonthDay(bestDay.occurredOn)} · {bestDay.count}마리
+                ({bestDay.species})
               </span>
             </p>
           ) : null}

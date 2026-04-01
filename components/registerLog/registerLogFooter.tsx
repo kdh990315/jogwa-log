@@ -17,12 +17,12 @@ export function RegisterLogFooter({
   registerStep,
 }: RegisterLogFooterProps) {
   return (
-    <div className="flex justify-between border-t border-slate-100 bg-white p-4 shrink-0">
+    <div className="flex shrink-0 justify-between border-t border-line-muted bg-surface-card p-4">
       <button
         className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors ${
           registerStep === 1
-            ? "cursor-not-allowed text-slate-300"
-            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            ? "cursor-not-allowed text-fg-muted opacity-40"
+            : "text-fg-dim hover:bg-surface-muted hover:text-fg"
         }`}
         disabled={registerStep === 1}
         onClick={onPrevious}
@@ -32,10 +32,10 @@ export function RegisterLogFooter({
       </button>
 
       <button
-        className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all ${
+        className={`flex items-center gap-2 rounded-xl px-6 py-2.5 text-sm font-semibold shadow-sm transition-all ${
           canProceed
-            ? "bg-brand hover:bg-brand-hover hover:shadow-md active:scale-95"
-            : "cursor-not-allowed bg-slate-300"
+            ? "bg-brand text-white hover:bg-brand-hover hover:shadow-md active:scale-95"
+            : "cursor-not-allowed bg-surface-muted text-fg-muted shadow-none"
         }`}
         disabled={!canProceed}
         onClick={onNext}

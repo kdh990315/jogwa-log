@@ -166,26 +166,24 @@ export function RegisterLogDialog({
 
           <div
             aria-modal="true"
-            className="relative z-10 flex h-full w-full flex-col overflow-hidden bg-white shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-2xl"
+            className="relative z-10 flex h-full w-full flex-col overflow-hidden border border-line-card bg-surface-card text-fg shadow-2xl animate-in fade-in zoom-in-95 duration-200 sm:h-auto sm:max-h-[90vh] sm:max-w-2xl sm:rounded-2xl"
             role="dialog"
           >
             <div className="flex items-center justify-between border-b border-line-muted p-6 shrink-0">
               <div className="flex items-center gap-2">
-                <div className="rounded-lg bg-blue-100 p-2">
-                  <PlusIcon className="h-5 w-5 text-blue-600" />
+                <div className="rounded-lg bg-brand-surface p-2 text-brand-fg">
+                  <PlusIcon className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">
-                    새 조과 기록
-                  </h2>
-                  <p className="mt-0.5 text-xs font-medium text-slate-500">
+                  <h2 className="text-xl font-bold text-fg">새 조과 기록</h2>
+                  <p className="mt-0.5 text-xs font-medium text-fg-faint">
                     Step {registerStep} of 3
                   </p>
                 </div>
               </div>
               <button
                 aria-label="기록하기 모달 닫기"
-                className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                className="rounded-full p-2 text-fg-muted transition-colors hover:bg-surface-muted hover:text-fg-dim"
                 onClick={handleClose}
                 type="button"
               >
