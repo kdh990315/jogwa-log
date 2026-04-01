@@ -11,6 +11,7 @@ export function createInitialFormState(): RegisterLogFormState {
   return {
     catchCount: "",
     date: formatDateInputValue(now),
+    fieldTypeId: "",
     locationQuery: "",
     maxSize: "",
     memo: "",

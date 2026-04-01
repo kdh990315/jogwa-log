@@ -10,6 +10,7 @@ export interface RegisterLogDialogProps {
 export interface RegisterLogFormState {
   catchCount: string;
   date: string;
+  fieldTypeId: string;
   locationQuery: string;
   maxSize: string;
   memo: string;

@@ -4,11 +4,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import { PlusIcon } from "@/components/icons/plus/plus";
 import { XIcon } from "@/components/icons/x/x";
+import type { FieldTypeRow } from "@jogwa-log/data-access/api/referenceData/fieldTypes";
+import type { FishRow } from "@jogwa-log/data-access/api/referenceData/fish";
 
 import {
-  FRESHWATER_SPECIES_OPTIONS,
-  SEA_SPECIES_OPTIONS,
-} from "./registerLog.constants";
+  useFieldTypes,
+  useFishRows,
+} from "@/components/providers/referenceDataProvider";
+import { getTideBySolarDate } from "@/packages/shared/tideFormatter";
+
 import { RegisterCatchInfoStep } from "./registerCatchInfoStep";
 import { RegisterLogFooter } from "./registerLogFooter";
 import { RegisterLogProgress } from "./registerLogProgress";
@@ -31,15 +35,16 @@ export function RegisterLogDialog({
   const [fishingType, setFishingType] = useState<"sea" | "freshwater" | null>(
     null,
   );
+  const fieldTypes = useFieldTypes();
+  const fishRows = useFishRows();
   const [formState, setFormState] = useState<RegisterLogFormState>(
     createInitialFormState(),
   );
   const closeTimerRef = useRef<number | null>(null);
-
-  const speciesOptions =
-    fishingType === "freshwater"
-      ? FRESHWATER_SPECIES_OPTIONS
-      : SEA_SPECIES_OPTIONS;
+  const speciesOptions = getSpeciesOptions({
+    fieldTypeId: formState.fieldTypeId,
+    fishRows,
+  });
 
   const resetState = useCallback(() => {
     setRegisterStep(1);
@@ -77,6 +82,24 @@ export function RegisterLogDialog({
     setFormState((previousState) => ({
       ...previousState,
       [key]: value,
+      ...(key === "date" && fishingType === "sea"
+        ? {
+            tide: getTideNameForDate(value),
+          }
+        : {}),
+    }));
+  }
+
+  function handleFishingTypeSelect(nextFishingType: "sea" | "freshwater") {
+    setFishingType(nextFishingType);
+    setFormState((previousState) => ({
+      ...previousState,
+      fieldTypeId: String(resolveFieldTypeId(fieldTypes, nextFishingType)),
+      species: "",
+      tide:
+        nextFishingType === "sea"
+          ? getTideNameForDate(previousState.date)
+          : "",
     }));
   }
 
@@ -176,7 +199,7 @@ export function RegisterLogDialog({
               {registerStep === 1 ? (
                 <RegisterFishingTypeStep
                   fishingType={fishingType}
-                  onSelect={setFishingType}
+                  onSelect={handleFishingTypeSelect}
                 />
               ) : null}
               {registerStep === 2 ? (
@@ -206,4 +229,55 @@ export function RegisterLogDialog({
       )}
     </>
   );
+}
+
+function getSpeciesOptions({
+  fieldTypeId,
+  fishRows,
+}: {
+  fieldTypeId: RegisterLogFormState["fieldTypeId"];
+  fishRows: FishRow[];
+}) {
+  const normalizedFieldTypeId = Number.parseInt(fieldTypeId, 10);
+
+  if (!Number.isFinite(normalizedFieldTypeId)) {
+    return [];
+  }
+
+  return fishRows
+    .filter(
+      (fish) =>
+        fish.field_type_id === normalizedFieldTypeId &&
+        typeof fish.name === "string",
+    )
+    .map((fish) => fish.name as string);
+}
+
+function resolveFieldTypeId(
+  fieldTypes: FieldTypeRow[],
+  fishingType: "sea" | "freshwater",
+) {
+  const matchedFieldType = fieldTypes.find((fieldType) =>
+    fishingType === "sea"
+      ? fieldType.name?.includes("바다")
+      : fieldType.name?.includes("민물"),
+  );
+
+  if (matchedFieldType) {
+    return matchedFieldType.id;
+  }
+
+  return fishingType === "sea" ? 1 : 2;
+}
+
+function getTideNameForDate(dateValue: RegisterLogFormState["date"]) {
+  if (!dateValue) {
+    return "";
+  }
+
+  try {
+    return getTideBySolarDate(new Date(`${dateValue}T12:00:00+09:00`)).mulName;
+  } catch {
+    return "";
+  }
 }

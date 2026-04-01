@@ -1,10 +1,13 @@
 import { Suspense, type ReactNode } from "react";
+import { getFieldTypes } from "@jogwa-log/data-access/api/referenceData/fieldTypes";
+import { getFish } from "@jogwa-log/data-access/api/referenceData/fish";
 import { createClient } from "@jogwa-log/data-access/supabase/server";
 import { redirect } from "next/navigation";
 
+import { ReferenceDataProvider } from "@/components/providers/referenceDataProvider";
+
 import { LOGIN_PATH } from "../../lib/auth/constants";
 import AppShell from "../../components/layout/appShell";
-import { getFish } from "./cachedData";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -18,9 +21,16 @@ async function AuthenticatedAppLayout({ children }: AppLayoutProps) {
     redirect(LOGIN_PATH);
   }
 
-  await getFish();
+  const [fieldTypes, fishRows] = await Promise.all([
+    getFieldTypes(supabase),
+    getFish(supabase),
+  ]);
 
-  return <AppShell>{children}</AppShell>;
+  return (
+    <ReferenceDataProvider initialState={{ fieldTypes, fishRows }}>
+      <AppShell>{children}</AppShell>
+    </ReferenceDataProvider>
+  );
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {

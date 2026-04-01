@@ -1,6 +1,6 @@
 import { SearchIcon } from "@/components/icons/search/search";
 
-import { TIDE_OPTIONS, WEATHER_OPTIONS } from "./registerLog.constants";
+import { WEATHER_OPTIONS } from "./registerLog.constants";
 import type {
   RegisterLogFishingType,
   RegisterLogFormState,
@@ -159,19 +159,17 @@ export function RegisterCatchInfoStep({
             >
               물때
             </label>
-            <select
-              className="w-full rounded-xl border border-line bg-surface-muted p-3 text-sm text-fg-dim transition-all focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/20"
+            <input
+              className="w-full rounded-xl border border-line bg-slate-100 p-3 text-sm font-medium text-fg-dim"
               id="register-log-tide"
-              onChange={(event) => onFieldChange("tide", event.target.value)}
+              placeholder="날짜를 선택하면 자동 계산됩니다."
+              readOnly
+              type="text"
               value={formState.tide}
-            >
-              <option value="">선택</option>
-              {TIDE_OPTIONS.map((tide) => (
-                <option key={tide} value={tide}>
-                  {tide}
-                </option>
-              ))}
-            </select>
+            />
+            <p className="mt-1.5 ml-1 text-[11px] text-slate-500">
+              날짜 기준으로 자동 계산됩니다.
+            </p>
           </div>
         ) : null}
         <div>
