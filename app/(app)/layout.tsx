@@ -2,6 +2,7 @@ import { Suspense, type ReactNode } from "react";
 import { getFieldTypes } from "@jogwa-log/data-access/api/referenceData/fieldTypes";
 import { getFish } from "@jogwa-log/data-access/api/referenceData/fish";
 import { createClient } from "@jogwa-log/data-access/supabase/server";
+import Script from "next/script";
 import { redirect } from "next/navigation";
 
 import { ReferenceDataProvider } from "@/components/providers/referenceDataProvider";
@@ -28,7 +29,14 @@ async function AuthenticatedAppLayout({ children }: AppLayoutProps) {
 
   return (
     <ReferenceDataProvider initialState={{ fieldTypes, fishRows }}>
-      <AppShell>{children}</AppShell>
+      <>
+        <Script
+          id="kakao-map-sdk"
+          src={`https://dapi.kakao.com/v2/maps/sdk.js?appkey=${process.env.NEXT_PUBLIC_KAKAO_JAVASCRIPT_KEY}&autoload=false&libraries=services`}
+          strategy="afterInteractive"
+        />
+        <AppShell>{children}</AppShell>
+      </>
     </ReferenceDataProvider>
   );
 }

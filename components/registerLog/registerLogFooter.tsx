@@ -1,6 +1,3 @@
-import { ChevronRightIcon } from "@/components/icons/chevronRight/chevronRight";
-import { ThumbsUpIcon } from "@/components/icons/thumbsUp/thumbsUp";
-
 import type { RegisterStep } from "./registerLog.types";
 
 interface RegisterLogFooterProps {
@@ -44,12 +41,10 @@ export function RegisterLogFooter({
         {registerStep === 3 ? (
           <>
             <span>등록완료</span>
-            <ThumbsUpIcon className="h-4 w-4" />
           </>
         ) : (
           <>
             <span>다음</span>
-            <ChevronRightIcon className="h-4 w-4" />
           </>
         )}
       </button>

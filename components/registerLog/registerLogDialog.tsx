@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 
 import { PlusIcon } from "@/components/icons/plus/plus";
 import { XIcon } from "@/components/icons/x/x";
@@ -32,25 +33,36 @@ export function RegisterLogDialog({
 }: RegisterLogDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [registerStep, setRegisterStep] = useState<RegisterStep>(1);
-  const [fishingType, setFishingType] = useState<"sea" | "freshwater" | null>(
-    null,
-  );
   const fieldTypes = useFieldTypes();
   const fishRows = useFishRows();
-  const [formState, setFormState] = useState<RegisterLogFormState>(
-    createInitialFormState(),
-  );
+  const registerLogForm = useForm<RegisterLogFormState>({
+    defaultValues: createInitialFormState(),
+    shouldUnregister: false,
+  });
+  const { control, getValues, handleSubmit, reset, setValue, trigger } =
+    registerLogForm;
   const closeTimerRef = useRef<number | null>(null);
+  const fishingType = useWatch({ control, name: "fishingType" }) ?? null;
+  const fieldTypeId = useWatch({ control, name: "fieldTypeId" }) ?? "";
+  const species = useWatch({ control, name: "species" }) ?? "";
+  const date = useWatch({ control, name: "date" }) ?? "";
+  const time = useWatch({ control, name: "time" }) ?? "";
+  const catchCount = useWatch({ control, name: "catchCount" }) ?? "";
+  const tide = useWatch({ control, name: "tide" }) ?? "";
+  const weather = useWatch({ control, name: "weather" }) ?? "";
+  const locationQuery = useWatch({ control, name: "locationQuery" }) ?? "";
+  const locationName = useWatch({ control, name: "locationName" }) ?? "";
+  const latitude = useWatch({ control, name: "latitude" });
+  const longitude = useWatch({ control, name: "longitude" });
   const speciesOptions = getSpeciesOptions({
-    fieldTypeId: formState.fieldTypeId,
+    fieldTypeId,
     fishRows,
   });
 
   const resetState = useCallback(() => {
     setRegisterStep(1);
-    setFishingType(null);
-    setFormState(createInitialFormState());
-  }, []);
+    reset(createInitialFormState());
+  }, [reset]);
 
   const openDialog = useCallback(() => {
     if (closeTimerRef.current) {
@@ -75,52 +87,63 @@ export function RegisterLogDialog({
     }, 300);
   }, [resetState]);
 
-  function updateField<Key extends keyof RegisterLogFormState>(
-    key: Key,
-    value: RegisterLogFormState[Key],
-  ) {
-    const nextDateValue =
-      key === "date" ? (value as RegisterLogFormState["date"]) : null;
-
-    setFormState((previousState) => ({
-      ...previousState,
-      [key]: value,
-      ...(nextDateValue && fishingType === "sea"
-        ? {
-            tide: getTideNameForDate(nextDateValue),
-          }
-        : {}),
-    }));
-  }
-
   function handleFishingTypeSelect(nextFishingType: "sea" | "freshwater") {
-    setFishingType(nextFishingType);
-    setFormState((previousState) => ({
-      ...previousState,
-      fieldTypeId: String(resolveFieldTypeId(fieldTypes, nextFishingType)),
-      species: "",
-      tide:
-        nextFishingType === "sea"
-          ? getTideNameForDate(previousState.date)
-          : "",
-    }));
+    setValue("fishingType", nextFishingType, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+    setValue(
+      "fieldTypeId",
+      String(resolveFieldTypeId(fieldTypes, nextFishingType)),
+      { shouldDirty: true, shouldValidate: true },
+    );
+    setValue("species", "", { shouldDirty: true, shouldValidate: true });
+    setValue(
+      "tide",
+      nextFishingType === "sea" ? getTideNameForDate(getValues("date")) : "",
+      { shouldDirty: true, shouldValidate: true },
+    );
   }
 
   function handlePrevious() {
     setRegisterStep(Math.max(1, registerStep - 1) as RegisterStep);
   }
 
-  function handleNext() {
+  async function handleNext() {
     if (registerStep === 1 && !fishingType) {
       return;
     }
 
-    if (registerStep < 3) {
+    if (registerStep === 1) {
+      setRegisterStep(2);
+      return;
+    }
+
+    if (registerStep === 2) {
+      const isStepTwoValid = await trigger(
+        fishingType === "sea"
+          ? ["date", "time", "species", "catchCount", "weather", "tide"]
+          : ["date", "time", "species", "catchCount", "weather"],
+      );
+
+      if (!isStepTwoValid) {
+        return;
+      }
+
       setRegisterStep((registerStep + 1) as RegisterStep);
       return;
     }
 
-    handleClose();
+    const isStepThreeValid = await trigger(["locationQuery", "locationName"]);
+
+    if (!isStepThreeValid || latitude === null || longitude === null) {
+      return;
+    }
+
+    void handleSubmit((formData) => {
+      console.log("registerLog form data", formData);
+      handleClose();
+    })();
   }
 
   useEffect(() => {
@@ -152,8 +175,41 @@ export function RegisterLogDialog({
     };
   }, [handleClose, isOpen]);
 
+  useEffect(() => {
+    if (fishingType !== "sea") {
+      if (getValues("tide")) {
+        setValue("tide", "");
+      }
+
+      return;
+    }
+
+    const nextTide = getTideNameForDate(date);
+
+    if (getValues("tide") !== nextTide) {
+      setValue("tide", nextTide);
+    }
+  }, [date, fishingType, getValues, setValue]);
+
+  const canProceed =
+    registerStep === 1
+      ? Boolean(fishingType)
+      : registerStep === 2
+        ? hasTextValue(date) &&
+          hasTextValue(time) &&
+          hasTextValue(species) &&
+          isNonNegativeNumberString(catchCount) &&
+          hasTextValue(weather) &&
+          (fishingType !== "sea" || hasTextValue(tide))
+      : registerStep === 3
+        ? hasTextValue(locationQuery) &&
+          hasTextValue(locationName) &&
+          latitude !== null &&
+          longitude !== null
+        : true;
+
   return (
-    <>
+    <FormProvider {...registerLogForm}>
       <RegisterLogTriggerButton
         className={triggerClassName}
         label={triggerLabel}
@@ -206,21 +262,16 @@ export function RegisterLogDialog({
               {registerStep === 2 ? (
                 <RegisterCatchInfoStep
                   fishingType={fishingType}
-                  formState={formState}
-                  onFieldChange={updateField}
                   speciesOptions={speciesOptions}
                 />
               ) : null}
               {registerStep === 3 ? (
-                <RegisterLocationStep
-                  formState={formState}
-                  onFieldChange={updateField}
-                />
+                <RegisterLocationStep />
               ) : null}
             </div>
 
             <RegisterLogFooter
-              canProceed={registerStep !== 1 || Boolean(fishingType)}
+              canProceed={canProceed}
               onNext={handleNext}
               onPrevious={handlePrevious}
               registerStep={registerStep}
@@ -228,7 +279,7 @@ export function RegisterLogDialog({
           </div>
         </div>
       )}
-    </>
+    </FormProvider>
   );
 }
 
@@ -281,4 +332,18 @@ function getTideNameForDate(dateValue: RegisterLogFormState["date"]) {
   } catch {
     return "";
   }
+}
+
+function hasTextValue(value: string) {
+  return value.trim().length > 0;
+}
+
+function isNonNegativeNumberString(value: string) {
+  if (value.trim().length === 0) {
+    return false;
+  }
+
+  const normalizedValue = Number(value);
+
+  return Number.isFinite(normalizedValue) && normalizedValue >= 0;
 }

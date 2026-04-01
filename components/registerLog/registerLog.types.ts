@@ -11,7 +11,11 @@ export interface RegisterLogFormState {
   catchCount: string;
   date: string;
   fieldTypeId: string;
+  fishingType: FishingMode | null;
+  latitude: number | null;
+  locationName: string;
   locationQuery: string;
+  longitude: number | null;
   maxSize: string;
   memo: string;
   species: string;
