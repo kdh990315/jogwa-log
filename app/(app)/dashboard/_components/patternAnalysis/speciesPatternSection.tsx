@@ -1,7 +1,8 @@
-import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { Cell, Pie, PieChart, Tooltip } from "recharts";
 
 import type { SpeciesStat } from "@/lib/mock/dashboardData";
 
+import { ChartFrame } from "./chartFrame";
 import { TOOLTIP_STYLE, VIZ_COLORS } from "./shared";
 
 interface SpeciesPatternSectionProps {
@@ -12,34 +13,36 @@ export function SpeciesPatternSection({
   speciesStats,
 }: SpeciesPatternSectionProps) {
   return (
-    <div className="h-full w-full animate-in fade-in zoom-in-95 duration-300">
+    <div className="h-full w-full min-w-0 animate-in fade-in zoom-in-95 duration-300">
       <div className="relative h-[160px] w-full">
-        <ResponsiveContainer height="100%" width="100%">
-          <PieChart>
-            <Pie
-              cx="50%"
-              cy="50%"
-              data={speciesStats}
-              dataKey="value"
-              innerRadius={50}
-              outerRadius={70}
-              paddingAngle={4}
-              stroke="none"
-            >
-              {speciesStats.map((item, index) => (
-                <Cell
-                  fill={VIZ_COLORS[index % VIZ_COLORS.length]}
-                  key={item.label}
-                />
-              ))}
-            </Pie>
-            <Tooltip
-              contentStyle={TOOLTIP_STYLE}
-              formatter={(value) => [`${value}%`, ""]}
-              itemStyle={{ color: "#e2e8f0" }}
-            />
-          </PieChart>
-        </ResponsiveContainer>
+        <ChartFrame className="h-full w-full">
+          {({ height, width }) => (
+            <PieChart height={height} width={width}>
+              <Pie
+                cx="50%"
+                cy="50%"
+                data={speciesStats}
+                dataKey="value"
+                innerRadius={50}
+                outerRadius={70}
+                paddingAngle={4}
+                stroke="none"
+              >
+                {speciesStats.map((item, index) => (
+                  <Cell
+                    fill={VIZ_COLORS[index % VIZ_COLORS.length]}
+                    key={item.label}
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={TOOLTIP_STYLE}
+                formatter={(value) => [`${value}%`, ""]}
+                itemStyle={{ color: "#e2e8f0" }}
+              />
+            </PieChart>
+          )}
+        </ChartFrame>
         <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center">
           <p className="text-xl font-bold text-[color:var(--fg)]">Top 4</p>
           <p className="text-[10px] text-[color:var(--fg-muted)]">어종 비율</p>

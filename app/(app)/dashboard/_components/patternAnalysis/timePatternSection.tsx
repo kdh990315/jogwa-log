@@ -1,7 +1,8 @@
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Cell, Tooltip, XAxis, YAxis } from "recharts";
 
 import type { TimePatternStat } from "@/lib/mock/dashboardData";
 
+import { ChartFrame } from "./chartFrame";
 import { TOOLTIP_STYLE, V1, V3 } from "./shared";
 
 interface TimePatternSectionProps {
@@ -19,12 +20,14 @@ export function TimePatternSection({
   }));
 
   return (
-    <div className="h-full w-full animate-in fade-in zoom-in-95 duration-300">
-      <div className="h-[180px] w-full -ml-4">
-        <ResponsiveContainer height="100%" width="100%">
+    <div className="h-full w-full min-w-0 animate-in fade-in zoom-in-95 duration-300">
+      <ChartFrame className="h-[180px] w-full">
+        {({ height, width }) => (
           <BarChart
             data={chartData}
-            margin={{ bottom: 0, left: 0, right: 10, top: 10 }}
+            height={height}
+            margin={{ bottom: 0, left: -16, right: 10, top: 10 }}
+            width={width}
           >
             <CartesianGrid
               opacity={0.15}
@@ -58,8 +61,8 @@ export function TimePatternSection({
               ))}
             </Bar>
           </BarChart>
-        </ResponsiveContainer>
-      </div>
+        )}
+      </ChartFrame>
 
       <p className="mt-3 rounded border border-[color:var(--brand-border)] bg-[color:var(--brand-surface)] py-1.5 text-center text-[10px] font-medium text-[color:var(--brand-fg)]">
         {timeInsight}

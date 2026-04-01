@@ -33,7 +33,7 @@ export function PatternAnalysisCard({
   const [activeTab, setActiveTab] = useState<PatternTab>("species");
 
   return (
-    <Card className="flex flex-col border-none p-4 shadow-sm hover:shadow-md">
+    <Card className="flex min-w-0 flex-col border-none p-4 shadow-sm hover:shadow-md">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-base font-bold text-[color:var(--fg)]">
           패턴 분석
@@ -60,7 +60,7 @@ export function PatternAnalysisCard({
         </div>
       </div>
 
-      <div className="relative min-h-[200px] flex-1">
+      <div className="relative min-h-[200px] min-w-0 flex-1">
         {activeTab === "species" ? (
           <SpeciesPatternSection speciesStats={speciesStats} />
         ) : null}

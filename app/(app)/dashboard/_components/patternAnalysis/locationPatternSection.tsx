@@ -1,7 +1,8 @@
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
 
 import type { LocationPerformanceStat } from "@/lib/mock/dashboardData";
 
+import { ChartFrame } from "./chartFrame";
 import { formatLocationPatternLabel, TOOLTIP_STYLE, V2 } from "./shared";
 
 interface LocationPatternSectionProps {
@@ -21,13 +22,15 @@ export function LocationPatternSection({
     .sort((left, right) => right.trips - left.trips);
 
   return (
-    <div className="h-full w-full animate-in fade-in zoom-in-95 duration-300">
-      <div className="h-[180px] w-full">
-        <ResponsiveContainer height="100%" width="100%">
+    <div className="h-full w-full min-w-0 animate-in fade-in zoom-in-95 duration-300">
+      <ChartFrame className="h-[180px] w-full">
+        {({ height, width }) => (
           <BarChart
             data={chartData}
+            height={height}
             layout="vertical"
             margin={{ bottom: 0, left: 10, right: 20, top: 0 }}
+            width={width}
           >
             <CartesianGrid
               horizontal
@@ -57,8 +60,8 @@ export function LocationPatternSection({
               radius={[0, 3, 3, 0]}
             />
           </BarChart>
-        </ResponsiveContainer>
-      </div>
+        )}
+      </ChartFrame>
 
       <p className="mt-3 text-center text-[10px] text-[color:var(--fg-faint)]">
         {locationInsight}

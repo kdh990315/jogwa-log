@@ -1,10 +1,11 @@
 "use client";
 
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Area, AreaChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
 
 import { Card } from "@/components/ui/card";
 import type { MonthlyCatchPoint } from "@/lib/mock/dashboardData";
 
+import { ChartFrame } from "./chartFrame";
 import { TOOLTIP_STYLE, V1 } from "./shared";
 
 interface MonthlyTrendCardProps {
@@ -13,7 +14,7 @@ interface MonthlyTrendCardProps {
 
 export function MonthlyTrendCard({ monthlyCatch }: MonthlyTrendCardProps) {
   return (
-    <Card className="border-none p-4 shadow-sm hover:shadow-md lg:col-span-2">
+    <Card className="min-w-0 border-none p-4 shadow-sm hover:shadow-md lg:col-span-2">
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-base font-bold text-[color:var(--fg)]">
           월별 조과 추이
@@ -24,9 +25,14 @@ export function MonthlyTrendCard({ monthlyCatch }: MonthlyTrendCardProps) {
         </select>
       </div>
 
-      <div className="h-[200px] w-full -ml-3 sm:h-[250px]">
-        <ResponsiveContainer height="100%" width="100%">
-          <AreaChart data={monthlyCatch}>
+      <ChartFrame className="h-[200px] w-full sm:h-[250px]">
+        {({ height, width }) => (
+          <AreaChart
+            data={monthlyCatch}
+            height={height}
+            margin={{ bottom: 0, left: -12, right: 0, top: 8 }}
+            width={width}
+          >
             <defs>
               <linearGradient id="monthly-catch-fill" x1="0" x2="0" y1="0" y2="1">
                 <stop offset="5%" stopColor={V1} stopOpacity={0.18} />
@@ -66,8 +72,8 @@ export function MonthlyTrendCard({ monthlyCatch }: MonthlyTrendCardProps) {
               type="monotone"
             />
           </AreaChart>
-        </ResponsiveContainer>
-      </div>
+        )}
+      </ChartFrame>
     </Card>
   );
 }

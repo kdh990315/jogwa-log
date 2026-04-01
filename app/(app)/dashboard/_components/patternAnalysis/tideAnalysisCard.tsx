@@ -1,10 +1,11 @@
 "use client";
 
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
 
 import { Card } from "@/components/ui/card";
 import type { TideStat } from "@/lib/mock/dashboardData";
 
+import { ChartFrame } from "./chartFrame";
 import { TOOLTIP_STYLE, V1 } from "./shared";
 
 interface TideAnalysisCardProps {
@@ -25,7 +26,7 @@ export function TideAnalysisCard({
   tideStats,
 }: TideAnalysisCardProps) {
   return (
-    <Card className="flex h-full flex-col border-none p-3 shadow-sm transition-shadow hover:shadow-md lg:col-span-1">
+    <Card className="flex h-full min-w-0 flex-col border-none p-3 shadow-sm transition-shadow hover:shadow-md lg:col-span-1">
       <div className="mb-3 flex shrink-0 items-center justify-between">
         <h3 className="text-sm font-bold text-[color:var(--fg)]">
           물때별 성과
@@ -35,12 +36,14 @@ export function TideAnalysisCard({
         </span>
       </div>
 
-      <div className="min-h-[200px] w-full flex-1">
-        <ResponsiveContainer height="100%" width="100%">
+      <ChartFrame className="min-h-[200px] w-full flex-1">
+        {({ height, width }) => (
           <BarChart
             data={tideStats}
+            height={height}
             layout="vertical"
             margin={{ bottom: 0, left: 4, right: 6, top: 0 }}
+            width={width}
           >
             <CartesianGrid
               horizontal
@@ -69,8 +72,8 @@ export function TideAnalysisCard({
               radius={[0, 4, 4, 0]}
             />
           </BarChart>
-        </ResponsiveContainer>
-      </div>
+        )}
+      </ChartFrame>
 
       <p className="mt-3 shrink-0 rounded-lg border border-[color:var(--brand-border)] bg-[color:var(--brand-surface)] p-2 text-[12px] leading-relaxed text-[color:var(--fg-faint)]">
         <strong className="text-[color:var(--brand-fg)]">분석:</strong> {insight}
