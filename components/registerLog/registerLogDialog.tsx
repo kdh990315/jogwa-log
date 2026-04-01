@@ -79,12 +79,15 @@ export function RegisterLogDialog({
     key: Key,
     value: RegisterLogFormState[Key],
   ) {
+    const nextDateValue =
+      key === "date" ? (value as RegisterLogFormState["date"]) : null;
+
     setFormState((previousState) => ({
       ...previousState,
       [key]: value,
-      ...(key === "date" && fishingType === "sea"
+      ...(nextDateValue && fishingType === "sea"
         ? {
-            tide: getTideNameForDate(value),
+            tide: getTideNameForDate(nextDateValue),
           }
         : {}),
     }));
