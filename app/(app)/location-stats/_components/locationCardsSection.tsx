@@ -1,7 +1,3 @@
-"use client";
-
-import { useState } from "react";
-
 import type { LocationStatDetail } from "@/lib/mock/locationStatsData";
 
 import { LocationCard } from "./locationCard";
@@ -15,10 +11,6 @@ export function LocationCardsSection({
   locations,
   rankById,
 }: LocationCardsSectionProps) {
-  const [expandedLocationId, setExpandedLocationId] = useState<string | null>(
-    null,
-  );
-
   return (
     <div>
       <div className="mb-3 flex items-center justify-between">
@@ -32,14 +24,8 @@ export function LocationCardsSection({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {locations.map((location) => (
           <LocationCard
-            expanded={expandedLocationId === location.id}
             key={location.id}
             location={location}
-            onToggle={() =>
-              setExpandedLocationId((currentLocationId) =>
-                currentLocationId === location.id ? null : location.id,
-              )
-            }
             rank={rankById.get(location.id) ?? 0}
           />
         ))}
