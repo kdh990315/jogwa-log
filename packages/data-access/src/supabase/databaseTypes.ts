@@ -98,6 +98,53 @@ export type Database = {
           },
         ];
       };
+      fishing_log_images: {
+        Row: {
+          content_type: string;
+          created_at: string;
+          id: number;
+          log_id: number;
+          original_file_name: string | null;
+          size_bytes: number;
+          sort_order: number;
+          storage_bucket: string;
+          storage_path: string;
+          user_id: string;
+        };
+        Insert: {
+          content_type: string;
+          created_at?: string;
+          id?: number;
+          log_id: number;
+          original_file_name?: string | null;
+          size_bytes: number;
+          sort_order?: number;
+          storage_bucket?: string;
+          storage_path: string;
+          user_id: string;
+        };
+        Update: {
+          content_type?: string;
+          created_at?: string;
+          id?: number;
+          log_id?: number;
+          original_file_name?: string | null;
+          size_bytes?: number;
+          sort_order?: number;
+          storage_bucket?: string;
+          storage_path?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "fishing_log_images_log_id_fkey";
+            columns: ["log_id"];
+            isOneToOne: false;
+            referencedRelation: "fishing_logs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       fishing_logs: {
         Row: {
           created_at: string;
@@ -199,7 +246,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      create_fishing_log_from_form: {
+      create_fishing_log: {
         Args: {
           p_catch_count?: number;
           p_date: string;
@@ -216,6 +263,12 @@ export type Database = {
           p_weather: string;
         };
         Returns: number;
+      };
+      user_owns_fishing_log: {
+        Args: {
+          p_log_id: string;
+        };
+        Returns: boolean;
       };
     };
     Enums: {
