@@ -17,7 +17,11 @@ import {
 import { SearchIcon } from "@/components/icons/search/search";
 import type { KakaoMapsApi, KakaoMapsLatLng } from "@/types/kakaoMap";
 
-import type { RegisterLogFormState } from "./registerLog.types";
+import { RegisterLogImagePicker } from "./registerLogImagePicker";
+import type {
+  RegisterLogFormState,
+  RegisterLogImagePreview,
+} from "./registerLog.types";
 
 const DEFAULT_MAP_CENTER = {
   latitude: 33.450701,
@@ -53,7 +57,19 @@ interface PickLocationOptions {
   successMessage: string;
 }
 
-export function RegisterLocationStep() {
+interface RegisterLocationStepProps {
+  imageErrorMessage: string | null;
+  images: RegisterLogImagePreview[];
+  onAddImages: (files: FileList) => void;
+  onRemoveImage: (imageId: string) => void;
+}
+
+export function RegisterLocationStep({
+  imageErrorMessage,
+  images,
+  onAddImages,
+  onRemoveImage,
+}: RegisterLocationStepProps) {
   const { control, register, setValue } =
     useFormContext<RegisterLogFormState>();
   const locationQuery = useWatch({ control, name: "locationQuery" }) ?? "";
@@ -341,6 +357,13 @@ export function RegisterLocationStep() {
           {...register("memo")}
         />
       </div>
+
+      <RegisterLogImagePicker
+        errorMessage={imageErrorMessage}
+        images={images}
+        onAddImages={onAddImages}
+        onRemoveImage={onRemoveImage}
+      />
     </div>
   );
 }

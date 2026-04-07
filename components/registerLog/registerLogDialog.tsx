@@ -8,7 +8,9 @@ import { PlusIcon } from "@/components/icons/plus/plus";
 import { XIcon } from "@/components/icons/x/x";
 import {
   createLog,
+  deleteLog,
   type CreateLogInput,
+  uploadLogImages,
 } from "@jogwa-log/data-access/api/logs/createLog";
 import type { FieldTypeRow } from "@jogwa-log/data-access/api/referenceData/fieldTypes";
 import type { FishRow } from "@jogwa-log/data-access/api/referenceData/fish";
@@ -20,6 +22,11 @@ import {
 } from "@/components/providers/referenceDataProvider";
 import { getTideBySolarDate } from "@/packages/shared/tideFormatter";
 
+import {
+  REGISTER_LOG_ACCEPTED_IMAGE_TYPES,
+  REGISTER_LOG_MAX_IMAGE_COUNT,
+  REGISTER_LOG_MAX_IMAGE_SIZE_BYTES,
+} from "./registerLog.constants";
 import { RegisterCatchInfoStep } from "./registerCatchInfoStep";
 import { RegisterLogFooter } from "./registerLogFooter";
 import { RegisterLogProgress } from "./registerLogProgress";
@@ -30,8 +37,11 @@ import { RegisterFishingTypeStep } from "./registerFishingTypeStep";
 import type {
   RegisterLogDialogProps,
   RegisterLogFormState,
+  RegisterLogImagePreview,
   RegisterStep,
 } from "./registerLog.types";
+
+const SUPPORTED_IMAGE_TYPES = new Set<string>(REGISTER_LOG_ACCEPTED_IMAGE_TYPES);
 
 export function RegisterLogDialog({
   triggerClassName,
@@ -42,6 +52,12 @@ export function RegisterLogDialog({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [registerStep, setRegisterStep] = useState<RegisterStep>(1);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [imageErrorMessage, setImageErrorMessage] = useState<string | null>(
+    null,
+  );
+  const [selectedImages, setSelectedImages] = useState<
+    RegisterLogImagePreview[]
+  >([]);
   const fieldTypes = useFieldTypes();
   const fishRows = useFishRows();
   const registerLogForm = useForm<RegisterLogFormState>({
@@ -51,6 +67,7 @@ export function RegisterLogDialog({
   const { control, getValues, handleSubmit, reset, setValue, trigger } =
     registerLogForm;
   const closeTimerRef = useRef<number | null>(null);
+  const imagePreviewUrlsRef = useRef<string[]>([]);
   const fishingType = useWatch({ control, name: "fishingType" }) ?? null;
   const fieldTypeId = useWatch({ control, name: "fieldTypeId" }) ?? "";
   const species = useWatch({ control, name: "species" }) ?? "";
@@ -68,11 +85,21 @@ export function RegisterLogDialog({
     fishRows,
   });
 
+  const clearSelectedImages = useCallback(() => {
+    imagePreviewUrlsRef.current.forEach((previewUrl) => {
+      URL.revokeObjectURL(previewUrl);
+    });
+    imagePreviewUrlsRef.current = [];
+    setImageErrorMessage(null);
+    setSelectedImages([]);
+  }, []);
+
   const resetDialog = useCallback(() => {
     setRegisterStep(1);
     setSubmitError(null);
     reset(createInitialState());
-  }, [reset]);
+    clearSelectedImages();
+  }, [clearSelectedImages, reset]);
 
   const openDialog = useCallback(() => {
     if (closeTimerRef.current) {
@@ -123,6 +150,69 @@ export function RegisterLogDialog({
     setRegisterStep(Math.max(1, registerStep - 1) as RegisterStep);
   }
 
+  function addSelectedImages(files: FileList) {
+    const nextFiles = Array.from(files);
+    const imageFiles = nextFiles.filter(
+      (file) =>
+        SUPPORTED_IMAGE_TYPES.has(file.type) &&
+        file.size <= REGISTER_LOG_MAX_IMAGE_SIZE_BYTES,
+    );
+    const remainingCount = REGISTER_LOG_MAX_IMAGE_COUNT - selectedImages.length;
+
+    if (remainingCount <= 0) {
+      setImageErrorMessage(
+        `사진은 최대 ${REGISTER_LOG_MAX_IMAGE_COUNT}장까지 첨부할 수 있습니다.`,
+      );
+      return;
+    }
+
+    if (imageFiles.length === 0) {
+      setImageErrorMessage(
+        `JPG, PNG, WEBP 파일만 가능하고 장당 최대 ${formatImageSize(REGISTER_LOG_MAX_IMAGE_SIZE_BYTES)}까지 첨부할 수 있습니다.`,
+      );
+      return;
+    }
+
+    const nextImages = imageFiles.slice(0, remainingCount).map((file) => {
+      const previewUrl = URL.createObjectURL(file);
+
+      imagePreviewUrlsRef.current.push(previewUrl);
+
+      return {
+        file,
+        id: crypto.randomUUID(),
+        previewUrl,
+      };
+    });
+
+    setSelectedImages((currentImages) => [...currentImages, ...nextImages]);
+
+    if (nextFiles.length > nextImages.length) {
+      setImageErrorMessage(
+        `일부 파일은 형식, 용량, 최대 ${REGISTER_LOG_MAX_IMAGE_COUNT}장 제한 때문에 제외했습니다.`,
+      );
+      return;
+    }
+
+    setImageErrorMessage(null);
+  }
+
+  function removeSelectedImage(imageId: string) {
+    setImageErrorMessage(null);
+    setSelectedImages((currentImages) => {
+      const removedImage = currentImages.find((image) => image.id === imageId);
+
+      if (removedImage) {
+        URL.revokeObjectURL(removedImage.previewUrl);
+        imagePreviewUrlsRef.current = imagePreviewUrlsRef.current.filter(
+          (previewUrl) => previewUrl !== removedImage.previewUrl,
+        );
+      }
+
+      return currentImages.filter((image) => image.id !== imageId);
+    });
+  }
+
   async function goNext() {
     setSubmitError(null);
 
@@ -158,18 +248,26 @@ export function RegisterLogDialog({
 
     await handleSubmit(async (formData) => {
       setIsSubmitting(true);
+      const supabase = createBrowserClient();
+      let createdLogId: number | null = null;
 
       try {
-        const supabase = createBrowserClient();
-
-        await createLog(
+        createdLogId = await createLog(
           supabase,
           toCreateLogInput(formData),
         );
+        await uploadLogImages(supabase, {
+          images: selectedImages.map((image) => image.file),
+          logId: createdLogId,
+        });
 
         closeDialog();
         router.refresh();
       } catch (error) {
+        if (createdLogId !== null) {
+          await deleteLog(supabase, createdLogId).catch(() => undefined);
+        }
+
         setSubmitError(getSubmitError(error));
       } finally {
         setIsSubmitting(false);
@@ -182,6 +280,11 @@ export function RegisterLogDialog({
       if (closeTimerRef.current) {
         window.clearTimeout(closeTimerRef.current);
       }
+
+      imagePreviewUrlsRef.current.forEach((previewUrl) => {
+        URL.revokeObjectURL(previewUrl);
+      });
+      imagePreviewUrlsRef.current = [];
     };
   }, []);
 
@@ -298,7 +401,12 @@ export function RegisterLogDialog({
                 />
               ) : null}
               {registerStep === 3 ? (
-                <RegisterLocationStep />
+                <RegisterLocationStep
+                  imageErrorMessage={imageErrorMessage}
+                  images={selectedImages}
+                  onAddImages={addSelectedImages}
+                  onRemoveImage={removeSelectedImage}
+                />
               ) : null}
             </div>
 
@@ -378,6 +486,10 @@ function getTideName(dateValue: RegisterLogFormState["date"]) {
 
 function hasText(value: string) {
   return value.trim().length > 0;
+}
+
+function formatImageSize(size: number) {
+  return `${Math.round(size / (1024 * 1024))}MB`;
 }
 
 function toCreateLogInput(

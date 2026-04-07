@@ -7,6 +7,12 @@ export interface RegisterLogDialogProps {
   triggerLabel?: string;
 }
 
+export interface RegisterLogImagePreview {
+  file: File;
+  id: string;
+  previewUrl: string;
+}
+
 export interface RegisterLogFormState {
   catchCount: string;
   date: string;
